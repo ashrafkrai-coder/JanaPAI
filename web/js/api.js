@@ -91,9 +91,9 @@ export async function simpanRpt({ tahun, tingkatan, dariMinggu = 1, minggu }) {
 /** Tukar satu soalan hasil AI kepada baris `koleksi_soalan`. */
 export function toKoleksiRow(soalan, konteks) {
   const objektif = soalan.jenis_soalan === 'Objektif';
-  // Jika guru menukar jawapan betul semasa menyunting, selaraskan baris "Jawapan: X" dalam skema.
+  // Jika guru menukar jawapan betul semasa menyunting, selaraskan baris "جواڤن: X" dalam skema.
   const skema = objektif
-    ? soalan.skema_jawapan.replace(/^Jawapan:\s*[A-D]/, `Jawapan: ${soalan.jawapan_betul}`)
+    ? soalan.skema_jawapan.replace(/^(جواڤن|Jawapan):\s*[A-D]/, `جواڤن: ${soalan.jawapan_betul}`)
     : soalan.skema_jawapan;
   return {
     dskp_id: konteks.dskp_id ?? null,
@@ -108,7 +108,7 @@ export function toKoleksiRow(soalan, konteks) {
   };
 }
 
-/** Simpan soalan yang baru dijana ke dalam `koleksi_soalan`. `user_id` diisi oleh Hasura. */
+/** Simpan soalan yang baru dijana ke dalam `koleksi_soalan` (bank dikongsi — tiada log masuk). */
 export async function simpanSoalan(rows) {
   const data = await gql(
     `mutation SimpanSoalan($objects: [koleksi_soalan_insert_input!]!) {

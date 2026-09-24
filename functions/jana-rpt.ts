@@ -2,10 +2,10 @@
 // Body: { tahun, kumpulan: 'A'|'B', tingkatan: 1-5, dskp_ids: string[] (tajuk belum diajar, ikut urutan), dari_minggu?: number }
 // Pulangkan cadangan RPT untuk dipratonton. Simpanan dibuat dari frontend (simpanRpt).
 import { janaRptAI, type MingguTakwim, type TajukDskp } from './_lib/gemini';
-import { hasuraAsUser, semakHadPenjanaan, simpanLog } from './_lib/hasura';
+import { hasuraAdmin, semakHadPenjanaan, simpanLog } from './_lib/hasura';
 import { HttpError, intInRange, oneOf, postHandler, uuid } from './_lib/http';
 
-export default postHandler(async ({ body, authorization }) => {
+export default postHandler(async ({ body }) => {
   const tahun = intInRange(body.tahun, 2020, 2100, 'tahun');
   const kumpulan = oneOf(body.kumpulan, ['A', 'B'] as const, 'kumpulan');
   const tingkatan = intInRange(body.tingkatan, 1, 5, 'tingkatan');
@@ -15,8 +15,7 @@ export default postHandler(async ({ body, authorization }) => {
   }
   const dskpIds = [...new Set(body.dskp_ids.map((id, i) => uuid(id, `dskp_ids[${i}]`)))];
 
-  const data = await hasuraAsUser<{ takwim_persekolahan: MingguTakwim[]; dskp: TajukDskp[] }>(
-    authorization,
+  const data = await hasuraAdmin<{ takwim_persekolahan: MingguTakwim[]; dskp: TajukDskp[] }>(
     `query DataRpt($tahun: smallint!, $kumpulan: bpchar!, $dari: smallint!, $tingkatan: smallint!, $ids: [uuid!]!) {
       takwim_persekolahan(
         where: { tahun: { _eq: $tahun }, kumpulan: { _eq: $kumpulan }, minggu_ke: { _gte: $dari } }
@@ -41,12 +40,11 @@ export default postHandler(async ({ body, authorization }) => {
   const kedudukan = new Map(dskpIds.map((id, i) => [id, i]));
   const tajuk = [...data.dskp].sort((a, b) => kedudukan.get(a.id)! - kedudukan.get(b.id)!);
 
-  await semakHadPenjanaan(authorization);
+  await semakHadPenjanaan();
 
   const hasil = await janaRptAI({ tingkatan, takwim: data.takwim_persekolahan, tajuk });
 
   const log_id = await simpanLog(
-    authorization,
     'rpt',
     { tahun, kumpulan, tingkatan, dari_minggu, dskp_ids: dskpIds },
     hasil,

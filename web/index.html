@@ -40,8 +40,6 @@
     /* Jawi perlukan ruang baris lebih tinggi supaya titik & baris tidak bertindih */
     body { line-height: 1.9; }
     .teks-soalan { unicode-bidi: plaintext; line-height: 2.1; }
-    /* E-mel & kata laluan ditaip dalam Latin */
-    .ltr { direction: ltr; text-align: left; }
     @media print {
       .kad { box-shadow: none; break-inside: avoid; }
     }
@@ -62,16 +60,10 @@
         <h1 class="text-lg leading-tight font-bold">JanaPAI</h1>
         <p class="truncate text-xs text-emerald-100">ڤنديديقن إسلام KSSM · تيڠکتن 1–5</p>
       </div>
-      <template x-if="user">
-        <div class="flex items-center gap-2">
-          <span class="hidden text-sm text-emerald-100 sm:inline" x-text="user.displayName || user.email"></span>
-          <button class="rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ring-white/40 hover:bg-white/10" @click="logKeluar()">لوݢ کلوار</button>
-        </div>
-      </template>
     </div>
 
     <!-- Tab -->
-    <nav x-show="user" class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="مينو اوتام">
+    <nav class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="مينو اوتام">
       <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'}]" :key="t.id">
         <button class="flex-1 rounded-t-lg px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5"
                 :class="tab === t.id ? 'bg-slate-50 text-emerald-800' : 'text-emerald-50 hover:bg-white/10'"
@@ -89,47 +81,9 @@
   <main class="mx-auto max-w-5xl px-4 py-5 pb-24">
 
     <!-- ===================================================================== -->
-    <!-- Log masuk / Daftar                                                    -->
-    <!-- ===================================================================== -->
-    <section x-show="!user" class="mx-auto mt-6 max-w-sm">
-      <div class="kad">
-        <h2 class="text-xl font-bold" x-text="auth.mode === 'masuk' ? 'لوݢ ماسوق' : 'دفتر اکاءون ݢورو'"></h2>
-        <p class="mt-1 text-sm text-slate-600">جان سوالن دان RPT ڤنديديقن إسلام KSSM دڠن بنتوان AI.</p>
-
-        <form class="mt-5 space-y-4" @submit.prevent="hantarAuth()">
-          <div x-show="auth.mode === 'daftar'">
-            <label class="label" for="nama">نام</label>
-            <input id="nama" class="input" dir="auto" x-model="auth.nama" autocomplete="name">
-          </div>
-          <div>
-            <label class="label" for="email">اي-ميل</label>
-            <input id="email" type="email" class="input ltr" x-model="auth.email" required autocomplete="email">
-          </div>
-          <div>
-            <label class="label" for="password">کات لالوان</label>
-            <input id="password" type="password" class="input ltr" x-model="auth.password" required minlength="9"
-                   :autocomplete="auth.mode === 'masuk' ? 'current-password' : 'new-password'">
-          </div>
-          <p x-show="auth.ralat" class="rounded-lg bg-red-50 p-3 text-sm text-red-700" dir="auto" x-text="auth.ralat"></p>
-          <button class="btn-utama w-full" :disabled="auth.loading">
-            <span x-show="auth.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
-            <span x-text="auth.mode === 'masuk' ? 'لوݢ ماسوق' : 'دفتر'"></span>
-          </button>
-        </form>
-
-        <p class="mt-4 text-center text-sm text-slate-600">
-          <span x-text="auth.mode === 'masuk' ? 'بلوم اد اکاءون؟' : 'سوده اد اکاءون؟'"></span>
-          <button class="font-semibold text-emerald-700 hover:underline"
-                  @click="auth.mode = auth.mode === 'masuk' ? 'daftar' : 'masuk'; auth.ralat = ''"
-                  x-text="auth.mode === 'masuk' ? 'دفتر' : 'لوݢ ماسوق'"></button>
-        </p>
-      </div>
-    </section>
-
-    <!-- ===================================================================== -->
     <!-- TAB: Jana Soalan                                                      -->
     <!-- ===================================================================== -->
-    <section x-show="user && tab === 'soalan'" class="space-y-5">
+    <section x-show="tab === 'soalan'" class="space-y-5">
       <div class="kad print:hidden">
         <h2 class="text-lg font-bold">تتڤن سوالن</h2>
 
@@ -272,7 +226,7 @@
     <!-- ===================================================================== -->
     <!-- TAB: Jana RPT                                                         -->
     <!-- ===================================================================== -->
-    <section x-show="user && tab === 'rpt'" class="space-y-5">
+    <section x-show="tab === 'rpt'" class="space-y-5">
       <div class="kad print:hidden">
         <h2 class="text-lg font-bold">تتڤن RPT</h2>
         <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -413,7 +367,7 @@
     <!-- ===================================================================== -->
     <!-- TAB: Bank Soalan                                                      -->
     <!-- ===================================================================== -->
-    <section x-show="user && tab === 'bank'" class="space-y-4">
+    <section x-show="tab === 'bank'" class="space-y-4">
       <div class="kad print:hidden">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <select class="input" x-model="bk.tingkatan" @change="muatBank(0)" aria-label="تاڤيس تيڠکتن">

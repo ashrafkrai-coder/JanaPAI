@@ -1,40 +1,30 @@
-// Akses Hasura dari dalam function MENGGUNAKAN TOKEN PENGGUNA (bukan admin secret).
-// Kesannya: kebenaran role `user` terpakai, token disahkan oleh Hasura, dan
-// `user_id` pada log diisi secara automatik oleh column preset.
+// Akses Hasura dari dalam function menggunakan ADMIN SECRET (aplikasi tanpa log masuk).
+// NHOST_ADMIN_SECRET & NHOST_GRAPHQL_URL disediakan secara automatik oleh Nhost kepada functions
+// dan tidak pernah dihantar ke pelayar. Oleh kerana kebenaran Hasura dipintas, setiap
+// input MESTI disahkan dalam function sebelum digunakan (lihat http.ts).
 import { HttpError } from './http';
 
-export async function hasuraAsUser<T>(
-  authorization: string,
-  query: string,
-  variables: Record<string, unknown> = {},
-): Promise<T> {
+export async function hasuraAdmin<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const url = process.env.NHOST_GRAPHQL_URL;
-  if (!url) throw new Error('NHOST_GRAPHQL_URL tidak ditetapkan');
+  const secret = process.env.NHOST_ADMIN_SECRET;
+  if (!url || !secret) throw new Error('NHOST_GRAPHQL_URL / NHOST_ADMIN_SECRET tidak ditetapkan');
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: authorization },
+    headers: { 'Content-Type': 'application/json', 'x-hasura-admin-secret': secret },
     body: JSON.stringify({ query, variables }),
   });
-  const json = (await res.json()) as { data?: T; errors?: { message: string; extensions?: { code?: string } }[] };
-
-  if (json.errors?.length) {
-    const [first] = json.errors;
-    if (first.extensions?.code === 'invalid-jwt' || res.status === 401) {
-      throw new HttpError(401, 'سسي تامت. سيلا لوݢ ماسوق سمولا.');
-    }
-    throw new Error(`Hasura: ${first.message}`);
-  }
+  const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
+  if (json.errors?.length) throw new Error(`Hasura: ${json.errors[0].message}`);
   return json.data as T;
 }
 
-/** Had bilangan penjanaan AI per pengguna dalam tempoh sejam (kawalan kos Gemini). */
-export async function semakHadPenjanaan(authorization: string): Promise<void> {
-  const had = Number(process.env.HAD_JANA_SEJAM ?? 30);
+/** Had bilangan penjanaan AI sejam bagi SEMUA pelawat (kawalan kos Gemini — tiada log masuk). */
+export async function semakHadPenjanaan(): Promise<void> {
+  const had = Number(process.env.HAD_JANA_SEJAM ?? 60);
   const sejamLalu = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-  const data = await hasuraAsUser<{ soalan_dijana_log_aggregate: { aggregate: { count: number } } }>(
-    authorization,
+  const data = await hasuraAdmin<{ soalan_dijana_log_aggregate: { aggregate: { count: number } } }>(
     `query HadJana($sejak: timestamptz!) {
       soalan_dijana_log_aggregate(where: { created_at: { _gte: $sejak } }) { aggregate { count } }
     }`,
@@ -45,15 +35,9 @@ export async function semakHadPenjanaan(authorization: string): Promise<void> {
   }
 }
 
-export async function simpanLog(
-  authorization: string,
-  jenis: 'soalan' | 'rpt',
-  parameter: unknown,
-  hasil: unknown,
-): Promise<string | null> {
+export async function simpanLog(jenis: 'soalan' | 'rpt', parameter: unknown, hasil: unknown): Promise<string | null> {
   try {
-    const data = await hasuraAsUser<{ insert_soalan_dijana_log_one: { id: string } }>(
-      authorization,
+    const data = await hasuraAdmin<{ insert_soalan_dijana_log_one: { id: string } }>(
       `mutation Log($obj: soalan_dijana_log_insert_input!) {
         insert_soalan_dijana_log_one(object: $obj) { id }
       }`,

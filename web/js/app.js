@@ -1,6 +1,5 @@
 // Logik antara muka JanaPAI (Alpine.js). Semua akses data melalui api.js / nhost.js.
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/module.esm.js';
-import { currentUser, onAuthChange, signIn, signOut, signUp } from './nhost.js';
 import {
   getDskp, getKoleksiSoalan, getRpt, getTakwim, janaRpt, janaSoalan,
   padamSoalan, simpanRpt, simpanSoalan, toKoleksiRow,
@@ -35,15 +34,11 @@ Alpine.data('app', () => ({
   lb: (k) => LABEL[k] ?? k,
 
   // --- Umum ------------------------------------------------------------------
-  user: currentUser(),
   // ?tab=rpt (pintasan manifest) mengatasi tab terakhir yang diingati
   tab: [new URLSearchParams(location.search).get('tab'), pref.get('tab', null)].find((t) => TAB.includes(t)) ?? 'soalan',
   online: navigator.onLine,
   toast: null,
   cetakSkema: true,
-
-  // --- Auth ------------------------------------------------------------------
-  auth: { mode: 'masuk', email: '', password: '', nama: '', loading: false, ralat: '' },
 
   // --- Jana Soalan -----------------------------------------------------------
   sq: {
@@ -79,15 +74,10 @@ Alpine.data('app', () => ({
 
   // ===========================================================================
   init() {
-    onAuthChange((user) => {
-      const baru = !this.user && user;
-      this.user = user;
-      if (baru) this.muatTab();
-    });
     addEventListener('online', () => { this.online = true; });
     addEventListener('offline', () => { this.online = false; });
     this.$watch('tab', (t) => { pref.set('tab', t); this.muatTab(); });
-    if (this.user) this.muatTab();
+    this.muatTab();
   },
 
   muatTab() {
@@ -109,37 +99,6 @@ Alpine.data('app', () => ({
       this.notify(this.online ? err.message : 'تياد سمبوڠن اينترنيت. سيلا چوبا لاݢي اڤابيلا دالم تالين.', 'ralat');
       return undefined;
     }
-  },
-
-  // ===========================================================================
-  // Auth
-  // ===========================================================================
-  async hantarAuth() {
-    const a = this.auth;
-    a.loading = true;
-    a.ralat = '';
-    try {
-      if (a.mode === 'masuk') {
-        await signIn(a.email.trim(), a.password);
-      } else {
-        const user = await signUp(a.email.trim(), a.password, a.nama.trim() || undefined);
-        if (!user) {
-          a.mode = 'masuk';
-          this.notify('اکاءون تله ددفترکن. سيلا صحکن اي-ميل اندا، کمودين لوݢ ماسوق.');
-        }
-      }
-      a.password = '';
-    } catch (err) {
-      a.ralat = err.message;
-    } finally {
-      a.loading = false;
-    }
-  },
-
-  async logKeluar() {
-    await this.cuba(() => signOut());
-    this.sq.hasil = null;
-    this.rp.hasil = null;
   },
 
   // ===========================================================================

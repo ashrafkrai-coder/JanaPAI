@@ -10,8 +10,6 @@ export class HttpError extends Error {
 
 export interface Ctx {
   body: Record<string, unknown>;
-  /** Header `Authorization: Bearer <accessToken>` pengguna — dihantar semula ke Hasura. */
-  authorization: string;
 }
 
 export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
@@ -22,14 +20,9 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST') return res.status(405).json({ message: 'ݢوناکن قاعده POST.' });
 
-    const authorization = req.headers.authorization;
-    if (!authorization?.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'سيلا لوݢ ماسوق ترلبيه دهولو.' });
-    }
-
     try {
       const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
-      res.status(200).json(await fn({ body, authorization }));
+      res.status(200).json(await fn({ body }));
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
       if (status >= 500) console.error(err);

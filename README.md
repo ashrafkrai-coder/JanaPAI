@@ -6,7 +6,7 @@ Aplikasi web progresif (PWA) untuk guru Pendidikan Islam:
 - **Jana RPT**: menyusun tajuk DSKP yang belum diajar mengikut takwim persekolahan (Kumpulan A/B), dengan catatan aktiviti, PAK21, EMK dan PBD.
 - **Bank Soalan**: tapis, salin, cetak (dengan atau tanpa skema) dan padam soalan.
 
-Teknologi yang digunakan: Nhost (PostgreSQL, Hasura GraphQL, Auth dan Functions), Google Gemini (`@google/genai`), Alpine.js dan Tailwind CSS v4. Frontend tidak memerlukan langkah build.
+Teknologi yang digunakan: Nhost (PostgreSQL, Hasura GraphQL dan Functions), Google Gemini (`@google/genai`), Alpine.js dan Tailwind CSS v4. Frontend tidak memerlukan langkah build.
 
 ## Seni bina
 
@@ -14,15 +14,16 @@ Teknologi yang digunakan: Nhost (PostgreSQL, Hasura GraphQL, Auth dan Functions)
 Pelayar (PWA)                        Nhost
 ─────────────                        ─────
 index.html + Alpine ──GraphQL──────► Hasura ──► PostgreSQL
-   │   (JWT pengguna)                  ▲  permissions role `user`
-   │                                   │  (token pengguna)
+   │   (tanpa token)                   ▲  permissions role `public`
+   │                                   │  (admin secret, di server sahaja)
    └──POST /jana-soalan, /jana-rpt──► Functions ──► Gemini API
                                          (GEMINI_API_KEY hanya di sini)
 ```
 
-- Kunci Gemini **tidak pernah** dihantar ke pelayar. Functions memanggil Hasura dengan **token pengguna** (bukan admin secret). Oleh itu kebenaran Hasura tetap terpakai, JWT disahkan sebelum sebarang kos AI, dan `user_id` pada log diisi secara automatik.
+- **Tiada log masuk.** Pelayar memanggil Hasura tanpa token, jadi role `public` digunakan: DSKP dan takwim boleh dibaca, manakala RPT dan Bank Soalan **dikongsi oleh semua pelawat** (sesiapa yang ada URL boleh menambah, mengubah dan memadam).
+- Kunci Gemini **tidak pernah** dihantar ke pelayar. Functions memanggil Hasura dengan `NHOST_ADMIN_SECRET` yang disediakan oleh Nhost di server; semua input disahkan dalam function kerana kebenaran Hasura dipintas.
 - Output Gemini dikunci dengan JSON Schema (`responseJsonSchema`), kemudian **disahkan semula** di server. Soalan yang pilihannya tidak lengkap dibuang. Dalam RPT, tajuk diberi rujukan `T1`, `T2` dan seterusnya (bukan UUID), jadi model tidak boleh mereka ID. Minggu cuti juga tidak boleh diberi tajuk.
-- Setiap pengguna dihadkan kepada `HAD_JANA_SEJAM` penjanaan sejam (lalai 30) untuk mengawal kos.
+- Semua pelawat **bersama-sama** dihadkan kepada `HAD_JANA_SEJAM` penjanaan sejam (lalai 60) untuk mengawal kos Gemini.
 
 ## Struktur fail
 
@@ -33,14 +34,14 @@ scripts/setup-hasura.mjs                    track jadual, hubungan & permissions
 scripts/make-icons.mjs                      jana ikon PWA
 functions/
   _lib/gemini.ts     modul Gemini: janaSoalanAI() & janaRptAI() (prompt, schema, validasi)
-  _lib/hasura.ts     GraphQL dengan token pengguna, had penjanaan, log
+  _lib/hasura.ts     GraphQL dengan admin secret, had penjanaan, log
   _lib/http.ts       CORS, POST sahaja, validasi input, format ralat
   jana-soalan.ts     POST /v1/functions/jana-soalan
   jana-rpt.ts        POST /v1/functions/jana-rpt
 web/
   index.html  manifest.json  sw.js  icons/
   js/config.js   subdomain & region Nhost
-  js/nhost.js    createClient + auth + gql() + callFunction()
+  js/nhost.js    createClient + gql() + callFunction()
   js/api.js      getDskp, simpanSoalan, getTakwim, simpanRpt, janaSoalan, janaRpt …
   js/app.js      komponen Alpine (UI)
 ```
@@ -50,7 +51,7 @@ web/
 ### 1. Projek Nhost
 
 1. Cipta projek di [app.nhost.io](https://app.nhost.io) dan catat **subdomain**, **region** dan **admin secret**.
-2. **Skema:** buka Hasura Console, pergi ke **Data › SQL**, tampal `nhost/migrations/default/1758700000000_init_janapai/up.sql`, dan tandakan *This is a migration*. Jika menggunakan Nhost CLI dan GitHub, folder `nhost/migrations` akan di-apply secara automatik.
+2. **Skema:** buka Hasura Console, pergi ke **Data › SQL**, tampal `up.sql` bagi setiap folder dalam `nhost/migrations/default/` mengikut urutan nombor, dan tandakan *This is a migration*. Jika menggunakan Nhost CLI dan GitHub, folder `nhost/migrations` akan di-apply secara automatik.
 3. **Metadata & permissions:**
    ```bash
    NHOST_SUBDOMAIN=xxxx NHOST_REGION=ap-southeast-1 NHOST_ADMIN_SECRET=... npm run setup:hasura
@@ -73,8 +74,8 @@ web/
    value = 'gemini-2.5-flash'
 
    [[global.environment]]
-   name = 'HAD_JANA_SEJAM'      # lalai: 30
-   value = '30'
+   name = 'HAD_JANA_SEJAM'      # lalai: 60 (semua pelawat)
+   value = '60'
    ```
 4. Sambungkan repo ini ke projek Nhost melalui GitHub integration. Folder `functions/` akan di-deploy dan kebergantungannya (`@google/genai`) diambil dari `package.json` di root.
 5. Penjanaan RPT untuk setahun penuh boleh mengambil masa 20-60 saat. Pastikan had masa (timeout) functions pada pelan Nhost anda mencukupi.
@@ -88,7 +89,6 @@ web/
    npm run dev:web        # http://localhost:5173
    ```
 3. Untuk deploy, muat naik folder `web/` ke mana-mana hos statik HTTPS seperti Netlify, Vercel, Cloudflare Pages atau GitHub Pages. PWA memerlukan HTTPS (kecuali `localhost`).
-4. Dalam Nhost Dashboard, pergi ke **Settings › Authentication** dan tambah URL frontend anda ke *Allowed Redirect URLs* / *Client URL*.
 
 ### Arahan lain
 

@@ -112,6 +112,47 @@ add('pg_create_insert_permission', {
   permission: { check: OWN, set: PRESET_USER, columns: ['jenis', 'parameter_carian', 'hasil_soalan_json'] },
 });
 
+// --- Kebenaran role `public` (aplikasi TANPA log masuk) ----------------------
+// Pelawat tanpa token = role `public` (HASURA_GRAPHQL_UNAUTHORIZED_ROLE lalai Nhost).
+// RPT & bank soalan dikongsi oleh semua pelawat. Log penjanaan hanya ditulis oleh
+// function (admin secret), jadi `public` tiada akses kepadanya.
+const RPT_COLS = ['tahun', 'tingkatan', 'minggu_ke', 'tarikh_mula', 'tarikh_tamat', 'tajuk_id', 'catatan_aktiviti'];
+const SOALAN_COLS = ['dskp_id', 'tingkatan', 'bidang', 'tajuk', 'aras_kognitif', 'jenis_soalan',
+  'soalan', 'pilihan_jawapan', 'skema_jawapan'];
+
+add('pg_create_select_permission', {
+  table: table('dskp'), role: 'public',
+  permission: { columns: '*', filter: {}, allow_aggregations: true },
+});
+add('pg_create_select_permission', {
+  table: table('takwim_persekolahan'), role: 'public', permission: { columns: '*', filter: {} },
+});
+add('pg_create_select_permission', {
+  table: table('rpt'), role: 'public', permission: { columns: '*', filter: {} },
+});
+add('pg_create_insert_permission', {
+  table: table('rpt'), role: 'public', permission: { check: {}, columns: RPT_COLS },
+});
+add('pg_create_update_permission', {
+  table: table('rpt'), role: 'public', permission: { columns: ['tajuk_id', 'catatan_aktiviti'], filter: {}, check: {} },
+});
+add('pg_create_delete_permission', {
+  table: table('rpt'), role: 'public', permission: { filter: {} },
+});
+add('pg_create_select_permission', {
+  table: table('koleksi_soalan'), role: 'public', permission: { columns: '*', filter: {}, allow_aggregations: true },
+});
+add('pg_create_insert_permission', {
+  table: table('koleksi_soalan'), role: 'public', permission: { check: {}, columns: SOALAN_COLS },
+});
+add('pg_create_update_permission', {
+  table: table('koleksi_soalan'), role: 'public',
+  permission: { columns: ['aras_kognitif', 'soalan', 'pilihan_jawapan', 'skema_jawapan'], filter: {}, check: {} },
+});
+add('pg_create_delete_permission', {
+  table: table('koleksi_soalan'), role: 'public', permission: { filter: {} },
+});
+
 // --- Laksana -----------------------------------------------------------------
 let failed = 0;
 for (const op of ops) {
