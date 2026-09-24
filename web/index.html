@@ -60,10 +60,11 @@
         <h1 class="text-lg leading-tight font-bold">JanaPAI</h1>
         <p class="truncate text-xs text-emerald-100">ڤنديديقن إسلام KSSM · تيڠکتن 1–5</p>
       </div>
+      <button x-show="dalam" class="rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ring-white/40 hover:bg-white/10" @click="keluarPanitia()">کلوار</button>
     </div>
 
     <!-- Tab -->
-    <nav class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="مينو اوتام">
+    <nav x-show="dalam" class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="مينو اوتام">
       <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'}]" :key="t.id">
         <button class="flex-1 rounded-t-lg px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5"
                 :class="tab === t.id ? 'bg-slate-50 text-emerald-800' : 'text-emerald-50 hover:bg-white/10'"
@@ -81,9 +82,30 @@
   <main class="mx-auto max-w-5xl px-4 py-5 pb-24">
 
     <!-- ===================================================================== -->
+    <!-- Kata laluan panitia                                                   -->
+    <!-- ===================================================================== -->
+    <section x-show="!dalam" class="mx-auto mt-6 max-w-sm">
+      <div class="kad">
+        <h2 class="text-xl font-bold">اکسيس ڤانيتيا ڤنديديقن إسلام</h2>
+        <p class="mt-1 text-sm text-slate-600">ماسوقکن کات لالوان ڤانيتيا اونتوق مڠݢوناکن JanaPAI.</p>
+        <form class="mt-5 space-y-4" @submit.prevent="hantarKataLaluan()">
+          <div>
+            <label class="label" for="kata-laluan">کات لالوان</label>
+            <input id="kata-laluan" type="password" class="input" dir="ltr" x-model="kl.nilai" required autocomplete="current-password">
+          </div>
+          <p x-show="kl.ralat" class="rounded-lg bg-red-50 p-3 text-sm text-red-700" dir="auto" x-text="kl.ralat"></p>
+          <button class="btn-utama w-full" :disabled="kl.loading || !online">
+            <span x-show="kl.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span>ماسوق</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
     <!-- TAB: Jana Soalan                                                      -->
     <!-- ===================================================================== -->
-    <section x-show="tab === 'soalan'" class="space-y-5">
+    <section x-show="dalam && tab === 'soalan'" class="space-y-5">
       <div class="kad print:hidden">
         <h2 class="text-lg font-bold">تتڤن سوالن</h2>
 
@@ -226,7 +248,7 @@
     <!-- ===================================================================== -->
     <!-- TAB: Jana RPT                                                         -->
     <!-- ===================================================================== -->
-    <section x-show="tab === 'rpt'" class="space-y-5">
+    <section x-show="dalam && tab === 'rpt'" class="space-y-5">
       <div class="kad print:hidden">
         <h2 class="text-lg font-bold">تتڤن RPT</h2>
         <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -367,7 +389,7 @@
     <!-- ===================================================================== -->
     <!-- TAB: Bank Soalan                                                      -->
     <!-- ===================================================================== -->
-    <section x-show="tab === 'bank'" class="space-y-4">
+    <section x-show="dalam && tab === 'bank'" class="space-y-4">
       <div class="kad print:hidden">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <select class="input" x-model="bk.tingkatan" @change="muatBank(0)" aria-label="تاڤيس تيڠکتن">

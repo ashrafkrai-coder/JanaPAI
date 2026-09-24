@@ -1,6 +1,7 @@
 // Pembalut handler Express untuk Nhost Functions: CORS, kaedah POST, dan format ralat seragam.
 // Fail/folder bermula dengan "_" tidak didedahkan sebagai endpoint oleh Nhost.
 import type { Request, Response } from 'express';
+import { tokenSah } from './token';
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -12,13 +13,21 @@ export interface Ctx {
   body: Record<string, unknown>;
 }
 
-export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
+/**
+ * @param opts.awam true = tidak perlukan token panitia (hanya untuk endpoint `masuk`).
+ */
+export function postHandler(fn: (ctx: Ctx) => Promise<unknown>, opts: { awam?: boolean } = {}) {
   return async (req: Request, res: Response) => {
     res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? '*');
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST') return res.status(405).json({ message: 'ݢوناکن قاعده POST.' });
+
+    // Semak token sebelum sebarang kos AI atau akses pangkalan data.
+    if (!opts.awam && !tokenSah(req.headers.authorization)) {
+      return res.status(401).json({ message: 'سيلا ماسوقکن کات لالوان ڤانيتيا.' });
+    }
 
     try {
       const body = typeof req.body === 'object' && req.body !== null ? req.body : {};

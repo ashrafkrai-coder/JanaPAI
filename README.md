@@ -20,7 +20,7 @@ index.html + Alpine ──GraphQL──────► Hasura ──► PostgreS
                                          (GEMINI_API_KEY hanya di sini)
 ```
 
-- **Tiada log masuk.** Pelayar memanggil Hasura tanpa token, jadi role `public` digunakan: DSKP dan takwim boleh dibaca, manakala RPT dan Bank Soalan **dikongsi oleh semua pelawat** (sesiapa yang ada URL boleh menambah, mengubah dan memadam).
+- **Kata laluan panitia, tiada akaun.** Function `masuk` menyemak `KATA_LALUAN_PANITIA` (di server) dan mengeluarkan token JWT 30 hari dengan role `panitia`, ditandatangani dengan `NHOST_JWT_SECRET` supaya Hasura menerimanya terus. Role `panitia` boleh membaca DSKP/takwim dan mengurus RPT serta Bank Soalan, yang **dikongsi oleh semua ahli panitia**. Pelawat tanpa token tiada akses langsung. Tukar kata laluan untuk menyekat ahli lama (token lama kekal sah sehingga tamat, kecuali `NHOST_JWT_SECRET` ditukar).
 - Kunci Gemini **tidak pernah** dihantar ke pelayar. Functions memanggil Hasura dengan `NHOST_ADMIN_SECRET` yang disediakan oleh Nhost di server; semua input disahkan dalam function kerana kebenaran Hasura dipintas.
 - Output Gemini dikunci dengan JSON Schema (`responseJsonSchema`), kemudian **disahkan semula** di server. Soalan yang pilihannya tidak lengkap dibuang. Dalam RPT, tajuk diberi rujukan `T1`, `T2` dan seterusnya (bukan UUID), jadi model tidak boleh mereka ID. Minggu cuti juga tidak boleh diberi tajuk.
 - Semua pelawat **bersama-sama** dihadkan kepada `HAD_JANA_SEJAM` penjanaan sejam (lalai 60) untuk mengawal kos Gemini.
@@ -36,6 +36,7 @@ functions/
   _lib/gemini.ts     modul Gemini: janaSoalanAI() & janaRptAI() (prompt, schema, validasi)
   _lib/hasura.ts     GraphQL dengan admin secret, had penjanaan, log
   _lib/http.ts       CORS, POST sahaja, validasi input, format ralat
+  masuk.ts           POST /v1/functions/masuk (kata laluan → token)
   jana-soalan.ts     POST /v1/functions/jana-soalan
   jana-rpt.ts        POST /v1/functions/jana-rpt
 web/
@@ -61,12 +62,16 @@ web/
 ### 2. Kunci Gemini dan Functions
 
 1. Dapatkan kunci di [Google AI Studio](https://aistudio.google.com/apikey).
-2. Dalam Nhost Dashboard, pergi ke **Settings › Secrets** dan tambah `GEMINI_API_KEY`.
+2. Dalam Nhost Dashboard, pergi ke **Settings › Secrets** dan tambah `GEMINI_API_KEY` serta `KATA_LALUAN_PANITIA` (kata laluan bersama panitia).
 3. Tambah pemboleh ubah persekitaran untuk functions dalam `nhost/nhost.toml`:
    ```toml
    [[global.environment]]
    name = 'GEMINI_API_KEY'
    value = '{{ secrets.GEMINI_API_KEY }}'
+
+   [[global.environment]]
+   name = 'KATA_LALUAN_PANITIA'
+   value = '{{ secrets.KATA_LALUAN_PANITIA }}'
 
    # Pilihan:
    [[global.environment]]

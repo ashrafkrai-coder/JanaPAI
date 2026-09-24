@@ -5,6 +5,7 @@ import {
   padamSoalan, simpanRpt, simpanSoalan, toKoleksiRow,
 } from './api.js';
 import { KUMPULAN_TAKWIM_LALAI } from './config.js';
+import { keluar, masuk, onMasukChange, sudahMasuk } from './nhost.js';
 
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
 const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'];
@@ -39,6 +40,10 @@ Alpine.data('app', () => ({
   online: navigator.onLine,
   toast: null,
   cetakSkema: true,
+
+  // --- Kata laluan panitia ---------------------------------------------------
+  dalam: sudahMasuk(),
+  kl: { nilai: '', loading: false, ralat: '' },
 
   // --- Jana Soalan -----------------------------------------------------------
   sq: {
@@ -77,10 +82,38 @@ Alpine.data('app', () => ({
     addEventListener('online', () => { this.online = true; });
     addEventListener('offline', () => { this.online = false; });
     this.$watch('tab', (t) => { pref.set('tab', t); this.muatTab(); });
+    onMasukChange((ok) => {
+      const baru = !this.dalam && ok;
+      this.dalam = ok;
+      if (baru) this.muatTab();
+    });
     this.muatTab();
   },
 
+  async hantarKataLaluan() {
+    const k = this.kl;
+    k.loading = true;
+    k.ralat = '';
+    try {
+      await masuk(k.nilai);
+      k.nilai = '';
+    } catch (err) {
+      k.ralat = err.message;
+    } finally {
+      k.loading = false;
+    }
+  },
+
+  keluarPanitia() {
+    keluar();
+    this.sq.hasil = null;
+    this.rp.hasil = null;
+    this.sq.dskpList = [];
+    this.rp.tajuk = [];
+  },
+
   muatTab() {
+    if (!this.dalam) return;
     if (this.tab === 'soalan' && !this.sq.dskpList.length) this.muatDskpSoalan();
     if (this.tab === 'rpt' && !this.rp.tajuk.length) this.muatDataRpt();
     if (this.tab === 'bank') this.muatBank(0);
