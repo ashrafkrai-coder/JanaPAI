@@ -24,12 +24,11 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>, opts: { awam?: b
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST') return res.status(405).json({ message: 'ݢوناکن قاعده POST.' });
 
-    // Semak token sebelum sebarang kos AI atau akses pangkalan data.
-    if (!opts.awam && !tokenSah(req.headers.authorization)) {
-      return res.status(401).json({ message: 'سيلا ماسوقکن کات لالوان ڤانيتيا.' });
-    }
-
     try {
+      // Semak token sebelum sebarang kos AI atau akses pangkalan data.
+      if (!opts.awam && !tokenSah(req.headers.authorization)) {
+        throw new HttpError(401, 'سيلا ماسوقکن کات لالوان ڤانيتيا.');
+      }
       const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
       res.status(200).json(await fn({ body }));
     } catch (err) {
