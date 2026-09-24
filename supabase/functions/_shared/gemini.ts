@@ -2,17 +2,18 @@
 //   Fungsi A — janaRptAI():    menyusun cadangan RPT daripada takwim + tajuk DSKP.
 //   Fungsi B — janaSoalanAI(): menjana soalan Pendidikan Islam KSSM dalam JSON yang sah.
 //
-// Modul ini tidak bergantung pada Nhost/Hasura: ia menerima data biasa dan memulangkan
-// data yang telah disahkan, jadi boleh digunakan semula di mana-mana backend Node.js.
-import { ApiError, GoogleGenAI } from '@google/genai';
-import { HttpError } from './http';
+// Modul ini tidak bergantung pada pangkalan data: ia menerima data biasa dan memulangkan
+// data yang telah disahkan.
+import { ApiError, GoogleGenAI } from 'npm:@google/genai@2';
+import { HttpError } from './http.ts';
 
-const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
 
 let client: GoogleGenAI | null = null;
 function ai(): GoogleGenAI {
-  if (!process.env.GEMINI_API_KEY) throw new HttpError(500, 'تتڤن ڤلاين: GEMINI_API_KEY تيدق دتتڤکن.');
-  client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
+  if (!apiKey) throw new HttpError(500, 'تتڤن ڤلاين: GEMINI_API_KEY تيدق دتتڤکن.');
+  client ??= new GoogleGenAI({ apiKey });
   return client;
 }
 

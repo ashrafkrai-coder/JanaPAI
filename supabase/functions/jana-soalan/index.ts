@@ -1,11 +1,11 @@
-// POST /v1/functions/jana-soalan
+// POST /functions/v1/jana-soalan
 // Body: { dskp_id, aras: 'Rendah'|'Sederhana'|'Tinggi'|'KBAT'|'Campuran', jenis: 'Objektif'|'Subjektif', bilangan: 1-20 }
-// Soalan TIDAK disimpan ke bank di sini — guru semak dahulu, kemudian simpan dari frontend.
-import { ARAS, JENIS, janaSoalanAI, type TajukDskp } from './_lib/gemini';
-import { hasuraAdmin, semakHadPenjanaan, simpanLog } from './_lib/hasura';
-import { HttpError, intInRange, oneOf, postHandler, uuid } from './_lib/http';
+// Soalan TIDAK disimpan ke bank di sini — guru semak dahulu, kemudian simpan melalui function `data`.
+import { ARAS, JENIS, janaSoalanAI, type TajukDskp } from '../_shared/gemini.ts';
+import { db, semak, semakHadPenjanaan, simpanLog } from '../_shared/db.ts';
+import { HttpError, intInRange, oneOf, postHandler, uuid } from '../_shared/http.ts';
 
-export default postHandler(async ({ body }) => {
+postHandler(async ({ body }) => {
   const params = {
     dskp_id: uuid(body.dskp_id, 'dskp_id'),
     aras: oneOf(body.aras, [...ARAS, 'Campuran'] as const, 'aras'),
@@ -14,14 +14,11 @@ export default postHandler(async ({ body }) => {
   };
 
   // Pastikan tajuk wujud sebelum sebarang kos AI.
-  const { dskp_by_pk: dskp } = await hasuraAdmin<{ dskp_by_pk: TajukDskp | null }>(
-    `query Tajuk($id: uuid!) {
-      dskp_by_pk(id: $id) {
-        id tingkatan bidang tajuk standard_kandungan standard_pembelajaran objektif_pembelajaran
-      }
-    }`,
-    { id: params.dskp_id },
-  );
+  const dskp = semak(await db()
+    .from('dskp')
+    .select('id, tingkatan, bidang, tajuk, standard_kandungan, standard_pembelajaran, objektif_pembelajaran')
+    .eq('id', params.dskp_id)
+    .maybeSingle()) as TajukDskp | null;
   if (!dskp) throw new HttpError(404, 'تاجوق DSKP تيدق دجومڤاي.');
 
   await semakHadPenjanaan();

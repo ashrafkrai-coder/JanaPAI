@@ -1,6 +1,7 @@
 node_modules/
-.secrets
 .env
-.nhost/
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
 
 .vercel

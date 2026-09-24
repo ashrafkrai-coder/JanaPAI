@@ -1,20 +1,17 @@
 {
   "name": "janapai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Penjana Soalan Pendidikan Islam KSSM Tingkatan 1-5 & Penjana RPT (PWA + Nhost + Gemini)",
+  "description": "Penjana Soalan Pendidikan Islam KSSM Tingkatan 1-5 & Penjana RPT (PWA + Supabase + Gemini)",
   "scripts": {
     "dev:web": "npx --yes serve web -l 5173",
-    "typecheck": "tsc --noEmit",
-    "setup:hasura": "node scripts/setup-hasura.mjs",
-    "icons": "node scripts/make-icons.mjs"
-  },
-  "dependencies": {
-    "@google/genai": "^2.24.0"
+    "icons": "node scripts/make-icons.mjs",
+    "db:push": "supabase db push",
+    "functions:deploy": "supabase functions deploy masuk data jana-soalan jana-rpt",
+    "secrets:set": "supabase secrets set --env-file supabase/functions/.env",
+    "check": "cd supabase/functions && deno check */index.ts"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^22.0.0",
-    "typescript": "^5.9.0"
+    "supabase": "^2.0.0"
   }
 }

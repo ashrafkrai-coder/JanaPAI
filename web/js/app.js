@@ -1,11 +1,11 @@
-// Logik antara muka JanaPAI (Alpine.js). Semua akses data melalui api.js / nhost.js.
+// Logik antara muka JanaPAI (Alpine.js). Semua akses data melalui api.js / backend.js.
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/module.esm.js';
 import {
   getDskp, getKoleksiSoalan, getRpt, getTakwim, janaRpt, janaSoalan,
   padamSoalan, simpanRpt, simpanSoalan, toKoleksiRow,
 } from './api.js';
 import { KUMPULAN_TAKWIM_LALAI } from './config.js';
-import { keluar, masuk, onMasukChange, sudahMasuk } from './nhost.js';
+import { keluar, masuk, onMasukChange, sudahMasuk } from './backend.js';
 
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
 const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'];

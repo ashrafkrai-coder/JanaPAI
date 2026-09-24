@@ -1,12 +1,12 @@
-// POST /v1/functions/masuk
+// POST /functions/v1/masuk
 // Body: { kata_laluan }
 // Tukar kata laluan panitia (KATA_LALUAN_PANITIA, disimpan di server) kepada token akses 30 hari.
-import { HttpError, postHandler } from './_lib/http';
-import { kataLaluanBetul, keluarkanToken } from './_lib/token';
+import { HttpError, postHandler } from '../_shared/http.ts';
+import { kataLaluanBetul, keluarkanToken } from '../_shared/token.ts';
 
 const tidur = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export default postHandler(async ({ body }) => {
+postHandler(async ({ body }) => {
   const cubaan = typeof body.kata_laluan === 'string' ? body.kata_laluan : '';
   if (!cubaan || cubaan.length > 200 || !kataLaluanBetul(cubaan)) {
     await tidur(1500); // perlahankan cubaan meneka kata laluan

@@ -1,7 +1,6 @@
-// Pembalut handler Express untuk Nhost Functions: CORS, kaedah POST, dan format ralat seragam.
-// Fail/folder bermula dengan "_" tidak didedahkan sebagai endpoint oleh Nhost.
-import type { Request, Response } from 'express';
-import { tokenSah } from './token';
+// Pembalut handler Edge Function: CORS, kaedah POST, token panitia dan format ralat seragam.
+// Folder bermula dengan "_" tidak di-deploy sebagai function oleh Supabase.
+import { tokenSah } from './token.ts';
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -13,34 +12,40 @@ export interface Ctx {
   body: Record<string, unknown>;
 }
 
+const CORS = {
+  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? '*',
+  'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const json = (status: number, data: unknown) =>
+  new Response(JSON.stringify(data), { status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+
 /**
- * @param opts.awam true = tidak perlukan token panitia (hanya untuk endpoint `masuk`).
+ * @param opts.awam true = tidak perlukan token panitia (hanya untuk function `masuk`).
  */
 export function postHandler(fn: (ctx: Ctx) => Promise<unknown>, opts: { awam?: boolean } = {}) {
-  return async (req: Request, res: Response) => {
-    res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST') return res.status(405).json({ message: 'ݢوناکن قاعده POST.' });
+  Deno.serve(async (req) => {
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+    if (req.method !== 'POST') return json(405, { message: 'ݢوناکن قاعده POST.' });
 
     try {
       // Semak token sebelum sebarang kos AI atau akses pangkalan data.
-      if (!opts.awam && !tokenSah(req.headers.authorization)) {
+      if (!opts.awam && !tokenSah(req.headers.get('authorization') ?? undefined)) {
         throw new HttpError(401, 'سيلا ماسوقکن کات لالوان ڤانيتيا.');
       }
-      const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
-      res.status(200).json(await fn({ body }));
+      const body = await req.json().catch(() => ({}));
+      return json(200, await fn({ body: typeof body === 'object' && body !== null ? body : {} }));
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
       if (status >= 500) console.error(err);
       // Punca teknikal disertakan (tiada rahsia di dalamnya) supaya panitia boleh melaporkan ralat.
       const punca = (err as Error)?.message?.slice(0, 300) ?? String(err);
-      res.status(status).json({
+      return json(status, {
         message: err instanceof HttpError ? err.message : `رالت دالمن ڤلاين. سيلا چوبا لاݢي. (${punca})`,
       });
     }
-  };
+  });
 }
 
 // --- Pengesahan input ringkas -------------------------------------------------
@@ -64,5 +69,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export function uuid(value: unknown, name: string): string {
   if (typeof value !== 'string' || !UUID_RE.test(value)) throw new HttpError(400, `${name} تيدق صح.`);
+  return value;
+}
+
+/** Teks wajib dengan had panjang. */
+export function teks(value: unknown, max: number, name: string): string {
+  if (typeof value !== 'string' || !value.trim() || value.length > max) {
+    throw new HttpError(400, `${name} تيدق صح.`);
+  }
   return value;
 }

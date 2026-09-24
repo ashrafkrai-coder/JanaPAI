@@ -1,12 +1,14 @@
 -- =============================================================================
--- JanaPAI — Skema pangkalan data (Nhost / PostgreSQL)
+-- JanaPAI — Skema pangkalan data (Supabase / PostgreSQL)
 -- Penjana Soalan Pendidikan Islam KSSM Tingkatan 1-5 & Penjana RPT
 --
--- Jalankan melalui Nhost CLI (`nhost up` akan apply migration ini), atau
--- tampal ke Hasura Console > Data > SQL (tandakan "This is a migration").
+-- Jalankan dengan `npx supabase db push`, atau tampal ke Supabase Dashboard > SQL Editor.
+-- Tiada akaun pengguna: semua akses melalui Edge Functions (service role) selepas kata
+-- laluan panitia disahkan. RLS diaktifkan TANPA polisi, jadi kunci anon tidak boleh
+-- membaca atau menulis apa-apa secara terus.
 -- =============================================================================
 
--- gen_random_uuid() — sudah tersedia di Nhost, tetapi selamat untuk dipastikan.
+-- gen_random_uuid() — sudah tersedia di Supabase, tetapi selamat untuk dipastikan.
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- -----------------------------------------------------------------------------
@@ -80,8 +82,6 @@ COMMENT ON TABLE public.takwim_persekolahan IS 'Takwim persekolahan mingguan (KP
 -- =============================================================================
 CREATE TABLE public.rpt (
   id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  -- Pemilik RPT (guru). Diisi automatik oleh Hasura (column preset X-Hasura-User-Id).
-  user_id          UUID        NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   tahun            SMALLINT    NOT NULL CHECK (tahun BETWEEN 2020 AND 2100),
   tingkatan        SMALLINT    NOT NULL CHECK (tingkatan BETWEEN 1 AND 5),
   minggu_ke        SMALLINT    NOT NULL CHECK (minggu_ke BETWEEN 1 AND 53),
@@ -96,7 +96,7 @@ CREATE TABLE public.rpt (
 
 COMMENT ON TABLE public.rpt IS 'Rancangan Pengajaran Tahunan — satu baris bagi setiap (minggu, tajuk)';
 
-CREATE INDEX rpt_user_tahun_tingkatan_minggu_idx ON public.rpt (user_id, tahun, tingkatan, minggu_ke);
+CREATE INDEX rpt_tahun_tingkatan_minggu_idx ON public.rpt (tahun, tingkatan, minggu_ke);
 CREATE INDEX rpt_tajuk_id_idx ON public.rpt (tajuk_id);  -- FK tidak diindeks secara automatik di PostgreSQL
 
 -- =============================================================================
@@ -104,7 +104,6 @@ CREATE INDEX rpt_tajuk_id_idx ON public.rpt (tajuk_id);  -- FK tidak diindeks se
 -- =============================================================================
 CREATE TABLE public.koleksi_soalan (
   id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID         NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   -- Rujukan pilihan ke tajuk DSKP (tajuk disimpan juga sebagai teks supaya soalan
   -- kekal bermakna walaupun baris DSKP diubah/dipadam).
   dskp_id         UUID         REFERENCES public.dskp (id) ON DELETE SET NULL,
@@ -126,18 +125,17 @@ CREATE TABLE public.koleksi_soalan (
   )
 );
 
-COMMENT ON TABLE public.koleksi_soalan IS 'Bank soalan Pendidikan Islam yang disimpan oleh guru';
+COMMENT ON TABLE public.koleksi_soalan IS 'Bank soalan Pendidikan Islam yang dikongsi oleh panitia';
 
-CREATE INDEX koleksi_soalan_user_created_idx  ON public.koleksi_soalan (user_id, created_at DESC);
+CREATE INDEX koleksi_soalan_created_idx       ON public.koleksi_soalan (created_at DESC);
 CREATE INDEX koleksi_soalan_filter_idx        ON public.koleksi_soalan (tingkatan, bidang, aras_kognitif, jenis_soalan);
 CREATE INDEX koleksi_soalan_dskp_id_idx       ON public.koleksi_soalan (dskp_id);
 
 -- =============================================================================
--- 5. soalan_dijana_log — Log sejarah penjanaan oleh pengguna
+-- 5. soalan_dijana_log — Log sejarah penjanaan AI (juga untuk had penjanaan sejam)
 -- =============================================================================
 CREATE TABLE public.soalan_dijana_log (
   id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id           UUID        NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   -- 'soalan' atau 'rpt' — supaya satu log boleh merekod kedua-dua jenis penjanaan.
   jenis             VARCHAR(10) NOT NULL DEFAULT 'soalan' CHECK (jenis IN ('soalan', 'rpt')),
   parameter_carian  JSONB       NOT NULL,
@@ -147,4 +145,41 @@ CREATE TABLE public.soalan_dijana_log (
 
 COMMENT ON TABLE public.soalan_dijana_log IS 'Log setiap panggilan penjana AI (parameter + output mentah)';
 
-CREATE INDEX soalan_dijana_log_user_created_idx ON public.soalan_dijana_log (user_id, created_at DESC);
+CREATE INDEX soalan_dijana_log_created_idx ON public.soalan_dijana_log (created_at DESC);
+
+-- =============================================================================
+-- 6. Keselamatan: RLS tanpa polisi = tiada akses untuk anon/authenticated.
+--    Edge Functions menggunakan service role (memintas RLS) selepas token panitia disahkan.
+-- =============================================================================
+ALTER TABLE public.dskp                ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.takwim_persekolahan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rpt                 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.koleksi_soalan      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.soalan_dijana_log   ENABLE ROW LEVEL SECURITY;
+
+-- =============================================================================
+-- 7. simpan_rpt — gantikan RPT (tahun, tingkatan) mulai minggu tertentu dalam SATU transaksi,
+--    supaya RPT lama tidak hilang jika sisipan gagal. Hanya untuk service role (Edge Functions).
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.simpan_rpt(p_tahun SMALLINT, p_tingkatan SMALLINT, p_dari SMALLINT, p_baris JSONB)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  bil INTEGER;
+BEGIN
+  DELETE FROM public.rpt WHERE tahun = p_tahun AND tingkatan = p_tingkatan AND minggu_ke >= p_dari;
+
+  INSERT INTO public.rpt (tahun, tingkatan, minggu_ke, tarikh_mula, tarikh_tamat, tajuk_id, catatan_aktiviti)
+  SELECT p_tahun, p_tingkatan, b.minggu_ke, b.tarikh_mula, b.tarikh_tamat, b.tajuk_id, b.catatan_aktiviti
+  FROM jsonb_to_recordset(p_baris) AS b(
+    minggu_ke SMALLINT, tarikh_mula DATE, tarikh_tamat DATE, tajuk_id UUID, catatan_aktiviti TEXT
+  );
+  GET DIAGNOSTICS bil = ROW_COUNT;
+  RETURN bil;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.simpan_rpt(SMALLINT, SMALLINT, SMALLINT, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.simpan_rpt(SMALLINT, SMALLINT, SMALLINT, JSONB) TO service_role;

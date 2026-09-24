@@ -1,6 +1,6 @@
 // Service Worker JanaPAI — caching fail statik supaya aplikasi dibuka pantas & boleh dilancar luar talian.
 // Tukar VERSION setiap kali fail app shell berubah untuk memaksa kemas kini cache.
-const VERSION = 'v5';
+const VERSION = 'v6';
 const SHELL_CACHE = `janapai-shell-${VERSION}`;
 const CDN_CACHE = `janapai-cdn-${VERSION}`;
 
@@ -10,7 +10,7 @@ const APP_SHELL = [
   './manifest.json',
   './js/app.js',
   './js/api.js',
-  './js/nhost.js',
+  './js/backend.js',
   './js/config.js',
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -34,12 +34,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET') return; // GraphQL/Functions (POST) sentiasa ke rangkaian
+  if (request.method !== 'GET') return; // Edge Functions (POST) sentiasa ke rangkaian
 
   const url = new URL(request.url);
 
-  // Nhost API (auth, graphql, functions, storage): JANGAN cache — data peribadi & token.
-  if (url.hostname.endsWith('.nhost.run')) return;
+  // Supabase: JANGAN cache — data panitia & token.
+  if (url.hostname.endsWith('.supabase.co')) return;
 
   // CDN: cache-first
   if (CDN_HOSTS.includes(url.hostname)) {

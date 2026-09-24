@@ -1,0 +1,16 @@
+# Konfigurasi Supabase CLI untuk JanaPAI.
+# Semua function mengesahkan TOKEN PANITIA sendiri (lihat functions/_shared/token.ts), jadi
+# semakan JWT Supabase di gateway dimatikan — `masuk` pula mesti boleh dipanggil tanpa token.
+project_id = "dgwzprjwqhmqkqkemjeb"
+
+[functions.masuk]
+verify_jwt = false
+
+[functions.data]
+verify_jwt = false
+
+[functions.jana-soalan]
+verify_jwt = false
+
+[functions.jana-rpt]
+verify_jwt = false

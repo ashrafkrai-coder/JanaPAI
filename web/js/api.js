@@ -1,87 +1,39 @@
-// Fungsi pembantu data JanaPAI: query/mutation Hasura GraphQL + panggilan serverless function.
-import { gql, callFunction } from './nhost.js';
+// Fungsi pembantu data JanaPAI: operasi function `data` + penjana AI (Edge Functions Supabase).
+import { callFunction, data } from './backend.js';
 
 // ---------------------------------------------------------------------------
 // DSKP & Takwim
 // ---------------------------------------------------------------------------
 
 /** Ambil tajuk DSKP mengikut Tingkatan (dan Bidang, jika diberi), tersusun mengikut urutan silibus. */
-export async function getDskp({ tingkatan, bidang = null }) {
-  const where = { tingkatan: { _eq: tingkatan } };
-  if (bidang) where.bidang = { _eq: bidang };
+export const getDskp = ({ tingkatan, bidang = null }) => data('getDskp', { tingkatan, bidang });
 
-  const data = await gql(
-    `query GetDskp($where: dskp_bool_exp!) {
-      dskp(where: $where, order_by: [{ urutan: asc }, { bidang: asc }, { tajuk: asc }]) {
-        id tingkatan bidang urutan tajuk
-        standard_kandungan standard_pembelajaran objektif_pembelajaran
-      }
-    }`,
-    { where },
-  );
-  return data.dskp;
-}
-
-export async function getTakwim({ tahun, kumpulan }) {
-  const data = await gql(
-    `query GetTakwim($tahun: smallint!, $kumpulan: bpchar!) {
-      takwim_persekolahan(
-        where: { tahun: { _eq: $tahun }, kumpulan: { _eq: $kumpulan } }
-        order_by: { minggu_ke: asc }
-      ) { id minggu_ke tarikh_mula tarikh_tamat minggu_pdp catatan }
-    }`,
-    { tahun, kumpulan },
-  );
-  return data.takwim_persekolahan;
-}
+export const getTakwim = ({ tahun, kumpulan }) => data('getTakwim', { tahun, kumpulan });
 
 // ---------------------------------------------------------------------------
 // RPT
 // ---------------------------------------------------------------------------
 
-export async function getRpt({ tahun, tingkatan }) {
-  const data = await gql(
-    `query GetRpt($tahun: smallint!, $tingkatan: smallint!) {
-      rpt(
-        where: { tahun: { _eq: $tahun }, tingkatan: { _eq: $tingkatan } }
-        order_by: [{ minggu_ke: asc }, { created_at: asc }]
-      ) {
-        id minggu_ke tarikh_mula tarikh_tamat tajuk_id catatan_aktiviti
-        dskp { tajuk bidang }
-      }
-    }`,
-    { tahun, tingkatan },
-  );
-  return data.rpt;
-}
+export const getRpt = ({ tahun, tingkatan }) => data('getRpt', { tahun, tingkatan });
 
 /**
  * Simpan RPT bagi (tahun, tingkatan): gantikan baris RPT lama bermula `dariMinggu` dengan baris baharu
- * (minggu sebelum itu — yang sudah diajar — dikekalkan).
- * Kedua-dua mutation dalam satu permintaan dijalankan oleh Hasura dalam SATU transaksi,
- * jadi RPT lama tidak akan hilang jika insert gagal.
+ * (minggu sebelum itu — yang sudah diajar — dikekalkan). Dilaksanakan dalam SATU transaksi
+ * (fungsi SQL `simpan_rpt`), jadi RPT lama tidak akan hilang jika sisipan gagal.
  */
-export async function simpanRpt({ tahun, tingkatan, dariMinggu = 1, minggu }) {
-  const objects = minggu.map((m) => ({
+export function simpanRpt({ tahun, tingkatan, dariMinggu = 1, minggu }) {
+  return data('simpanRpt', {
     tahun,
     tingkatan,
-    minggu_ke: m.minggu_ke,
-    tarikh_mula: m.tarikh_mula,
-    tarikh_tamat: m.tarikh_tamat,
-    tajuk_id: m.tajuk_id || null, // "" dari <select> = tiada tajuk
-    catatan_aktiviti: m.catatan_aktiviti ?? null,
-  }));
-
-  const data = await gql(
-    `mutation SimpanRpt($tahun: smallint!, $tingkatan: smallint!, $dari: smallint!, $objects: [rpt_insert_input!]!) {
-      delete_rpt(where: { tahun: { _eq: $tahun }, tingkatan: { _eq: $tingkatan }, minggu_ke: { _gte: $dari } }) {
-        affected_rows
-      }
-      insert_rpt(objects: $objects) { affected_rows }
-    }`,
-    { tahun, tingkatan, dari: dariMinggu, objects },
-  );
-  return data.insert_rpt.affected_rows;
+    dariMinggu,
+    minggu: minggu.map((m) => ({
+      minggu_ke: m.minggu_ke,
+      tarikh_mula: m.tarikh_mula,
+      tarikh_tamat: m.tarikh_tamat,
+      tajuk_id: m.tajuk_id || null, // "" dari <select> = tiada tajuk
+      catatan_aktiviti: m.catatan_aktiviti ?? null,
+    })),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -108,44 +60,17 @@ export function toKoleksiRow(soalan, konteks) {
   };
 }
 
-/** Simpan soalan yang baru dijana ke dalam `koleksi_soalan` (bank dikongsi — tiada log masuk). */
-export async function simpanSoalan(rows) {
-  const data = await gql(
-    `mutation SimpanSoalan($objects: [koleksi_soalan_insert_input!]!) {
-      insert_koleksi_soalan(objects: $objects) { affected_rows returning { id } }
-    }`,
-    { objects: rows },
-  );
-  return data.insert_koleksi_soalan.returning.map((r) => r.id);
-}
+/** Simpan soalan yang baru dijana ke dalam bank (dikongsi oleh panitia). Pulangkan senarai id. */
+export const simpanSoalan = (rows) => data('simpanSoalan', { rows });
 
-export async function getKoleksiSoalan({ tingkatan = null, bidang = null, aras = null, limit = 50, offset = 0 } = {}) {
-  const where = {};
-  if (tingkatan) where.tingkatan = { _eq: tingkatan };
-  if (bidang) where.bidang = { _eq: bidang };
-  if (aras) where.aras_kognitif = { _eq: aras };
+/** @returns {Promise<{ items: object[], jumlah: number }>} */
+export const getKoleksiSoalan = ({ tingkatan = null, bidang = null, aras = null, limit = 50, offset = 0 } = {}) =>
+  data('getKoleksiSoalan', { tingkatan, bidang, aras, limit, offset });
 
-  const data = await gql(
-    `query KoleksiSoalan($where: koleksi_soalan_bool_exp!, $limit: Int!, $offset: Int!) {
-      koleksi_soalan(where: $where, order_by: { created_at: desc }, limit: $limit, offset: $offset) {
-        id tingkatan bidang tajuk aras_kognitif jenis_soalan soalan pilihan_jawapan skema_jawapan created_at
-      }
-      koleksi_soalan_aggregate(where: $where) { aggregate { count } }
-    }`,
-    { where, limit, offset },
-  );
-  return { items: data.koleksi_soalan, jumlah: data.koleksi_soalan_aggregate.aggregate.count };
-}
-
-export async function padamSoalan(id) {
-  await gql(
-    `mutation PadamSoalan($id: uuid!) { delete_koleksi_soalan_by_pk(id: $id) { id } }`,
-    { id },
-  );
-}
+export const padamSoalan = (id) => data('padamSoalan', { id });
 
 // ---------------------------------------------------------------------------
-// Penjana AI (serverless functions — kunci Gemini kekal di server)
+// Penjana AI (Edge Functions — kunci Gemini kekal di server)
 // ---------------------------------------------------------------------------
 
 /**

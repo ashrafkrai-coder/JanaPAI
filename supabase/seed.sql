@@ -1,9 +1,15 @@
+-- =============================================================================
+-- JanaPAI — data awal (Supabase). Dijalankan oleh `npx supabase db reset` (tempatan),
+-- atau tampal ke Supabase Dashboard > SQL Editor selepas migrasi.
+--
+-- * DSKP Tingkatan 1: salinan dokumen rasmi BPK dalam tulisan Jawi — SEMAK sebelum guna.
+-- * Takwim: CONTOH sahaja (dijana mingguan). Ubah tarikh dan tandakan minggu cuti
+--   mengikut takwim KPM tahun semasa.
+-- =============================================================================
+
 -- DSKP KSSM Pendidikan Islam Tingkatan 1 (tulisan Jawi) — disalin daripada dokumen rasmi BPK:
 -- https://bpk.moe.gov.my/kurikulum/kssm/kssm-tingkatan-1/298-dskp-kssm-pendidikan-islam-tingkatan-1/file
 -- Disalin secara manual daripada imej PDF (fon Jawi dalam PDF tidak boleh diekstrak). SEMAK sebelum guna.
--- Menggantikan data [CONTOH] Tingkatan 1.
-BEGIN;
-DELETE FROM public.dskp WHERE tingkatan = 1 AND tajuk LIKE '[CONTOH]%';
 INSERT INTO public.dskp (tingkatan, bidang, urutan, tajuk, standard_kandungan, standard_pembelajaran) VALUES
 (1, 'Al-Quran', 1, 'اية 1 هيڠݢ 5 سورة البقرة (باچاءن دان حفظن)',
  '1.1 اية 1 هيڠݢ 5 سورة البقرة (باچاءن دان حفظن)',
@@ -257,4 +263,24 @@ INSERT INTO public.dskp (tingkatan, bidang, urutan, tajuk, standard_kandungan, s
 6.4.6 مڠهورايکن حکمه منجاݢ مرواه ديري.
 6.4.7 منجاݢ مرواه ديري دالم سموا کأداءن سچارا برادب دان استقامة.')
 ON CONFLICT (tingkatan, bidang, tajuk) DO UPDATE SET urutan = EXCLUDED.urutan, standard_kandungan = EXCLUDED.standard_kandungan, standard_pembelajaran = EXCLUDED.standard_pembelajaran;
-COMMIT;
+
+-- -----------------------------------------------------------------------------
+-- Takwim (dijana) — ubah 3 nilai di bawah mengikut takwim KPM rasmi
+-- -----------------------------------------------------------------------------
+INSERT INTO public.takwim_persekolahan (tahun, kumpulan, minggu_ke, tarikh_mula, tarikh_tamat, minggu_pdp, catatan)
+SELECT
+  2026                                            AS tahun,
+  'B'                                             AS kumpulan,
+  n                                               AS minggu_ke,
+  DATE '2026-01-12' + (n - 1) * 7                 AS tarikh_mula,   -- <-- tarikh hari pertama sesi (Isnin)
+  DATE '2026-01-12' + (n - 1) * 7 + 4             AS tarikh_tamat,  -- Isnin-Jumaat
+  TRUE,
+  'ميڠݢو ڤرسکولاهن'
+FROM generate_series(1, 42) AS n                                    -- <-- bilangan minggu dalam takwim
+ON CONFLICT (tahun, kumpulan, minggu_ke) DO NOTHING;
+
+-- Contoh menandakan minggu bukan PdP (sesuaikan nombor minggu dengan takwim sebenar):
+-- UPDATE public.takwim_persekolahan SET minggu_pdp = FALSE, catatan = 'چوتي ڤڠݢل 1'
+--   WHERE tahun = 2026 AND kumpulan = 'B' AND minggu_ke IN (10);
+-- UPDATE public.takwim_persekolahan SET minggu_pdp = FALSE, catatan = 'ڤڤريقساٴن ڤرتڠهن تاهون'
+--   WHERE tahun = 2026 AND kumpulan = 'B' AND minggu_ke IN (20, 21);
