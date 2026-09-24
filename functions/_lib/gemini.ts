@@ -1,0 +1,386 @@
+// Modul Google Gemini untuk JanaPAI.
+//   Fungsi A — janaRptAI():    menyusun cadangan RPT daripada takwim + tajuk DSKP.
+//   Fungsi B — janaSoalanAI(): menjana soalan Pendidikan Islam KSSM dalam JSON yang sah.
+//
+// Modul ini tidak bergantung pada Nhost/Hasura: ia menerima data biasa dan memulangkan
+// data yang telah disahkan, jadi boleh digunakan semula di mana-mana backend Node.js.
+import { ApiError, GoogleGenAI } from '@google/genai';
+import { HttpError } from './http';
+
+const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+
+let client: GoogleGenAI | null = null;
+function ai(): GoogleGenAI {
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY tidak ditetapkan');
+  client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  return client;
+}
+
+// =============================================================================
+// Jenis data
+// =============================================================================
+
+export const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'] as const;
+export const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'] as const;
+export const JENIS = ['Objektif', 'Subjektif'] as const;
+export type Aras = (typeof ARAS)[number];
+export type Jenis = (typeof JENIS)[number];
+
+export interface TajukDskp {
+  id: string;
+  tingkatan: number;
+  bidang: string;
+  tajuk: string;
+  standard_kandungan: string;
+  standard_pembelajaran: string;
+  objektif_pembelajaran: string | null;
+}
+
+export interface MingguTakwim {
+  minggu_ke: number;
+  tarikh_mula: string;
+  tarikh_tamat: string;
+  minggu_pdp: boolean;
+  catatan: string | null;
+}
+
+export interface Soalan {
+  jenis_soalan: Jenis;
+  aras_kognitif: Aras;
+  soalan: string;
+  pilihan_jawapan: { A: string; B: string; C: string; D: string } | null;
+  jawapan_betul: 'A' | 'B' | 'C' | 'D' | null;
+  /** Objektif: "Jawapan: X" + penjelasan. Subjektif: skema pemarkahan terperinci. */
+  skema_jawapan: string;
+  markah: number;
+  elemen_kbat: string | null;
+}
+
+export interface BarisRpt {
+  minggu_ke: number;
+  tarikh_mula: string;
+  tarikh_tamat: string;
+  tajuk_id: string | null;
+  catatan_aktiviti: string;
+}
+
+// =============================================================================
+// Panggilan Gemini (JSON berstruktur + cuba semula sekali jika JSON rosak)
+// =============================================================================
+
+async function generateJson<T>(opts: {
+  systemInstruction: string;
+  prompt: string;
+  schema: object;
+  temperature: number;
+}): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await ai().models.generateContent({
+        model: MODEL,
+        contents: opts.prompt,
+        config: {
+          systemInstruction: opts.systemInstruction,
+          temperature: opts.temperature,
+          responseMimeType: 'application/json',
+          responseJsonSchema: opts.schema,
+        },
+      });
+      const text = res.text;
+      if (!text) throw new Error(`Gemini tidak memulangkan teks (finishReason: ${res.candidates?.[0]?.finishReason})`);
+      return JSON.parse(text) as T;
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 429) throw new HttpError(429, 'Kuota Gemini API telah habis. Sila cuba sebentar lagi.');
+        if (err.status >= 400 && err.status < 500) throw new Error(`Gemini API ${err.status}: ${err.message}`);
+      }
+      lastError = err; // JSON rosak / ralat 5xx sementara → cuba sekali lagi
+    }
+  }
+  throw new HttpError(502, `Penjana AI gagal memulangkan hasil yang sah. (${(lastError as Error)?.message})`);
+}
+
+// =============================================================================
+// FUNGSI B — Jana Soalan KSSM
+// =============================================================================
+
+const SYSTEM_SOALAN = `
+Anda ialah Guru Cemerlang Pendidikan Islam dan penggubal item peperiksaan (PT3/SPM) yang
+berpengalaman di bawah Kurikulum Standard Sekolah Menengah (KSSM), Kementerian Pendidikan Malaysia.
+
+GAYA BAHASA
+- Bahasa Melayu baku dan formal, sesuai dengan tahap murid Tingkatan yang dinyatakan.
+- Gunakan istilah Pendidikan Islam yang lazim dalam buku teks KSSM (cth: solat, wuduk, akidah,
+  syariat, mukallaf, sunat muakkad, Rasulullah SAW, Allah SWT, sahabat RA).
+- Istilah Arab ditulis dalam ejaan Rumi baku; teks Arab (ayat al-Quran/hadis/doa) hanya jika
+  perlu, dengan baris yang lengkap, dan sentiasa disertakan maksudnya dalam Bahasa Melayu.
+
+ARAS KOGNITIF (Taksonomi Bloom semakan)
+- Rendah: mengingat dan memahami (nyatakan, senaraikan, apakah maksud).
+- Sederhana: mengaplikasi dan menganalisis (jelaskan, bezakan, huraikan).
+- Tinggi: menilai (wajarkan, pada pendapat anda, nilaikan).
+- KBAT: soalan berasaskan situasi/rangsangan kehidupan sebenar yang memerlukan murid
+  menganalisis, menilai atau mencipta penyelesaian. Masukkan elemen kemampanan dan nilai
+  murni (cth: amalan di rumah, sekolah, masyarakat, media sosial, alam sekitar).
+
+KETEPATAN SYARAK (WAJIB)
+- Kandungan mesti selaras dengan Ahli Sunnah Wal Jamaah dan mazhab Syafie seperti diajar di KSSM.
+- JANGAN mereka ayat al-Quran, hadis, perawi atau nombor ayat. Petik hanya nas yang masyhur dan
+  anda pasti ketepatannya (sebut nama surah dan nombor ayat / perawi). Jika tidak pasti, gunakan
+  maksud umum tanpa menyatakan sumber khusus.
+- Soalan mesti berdasarkan Standard Kandungan dan Standard Pembelajaran yang diberikan sahaja.
+
+SOALAN OBJEKTIF
+- Tepat empat pilihan A, B, C, D; hanya SATU jawapan betul; pengganggu munasabah dan homogen.
+- Elakkan "Semua di atas" / "Tiada di atas". Taburkan jawapan betul secara rawak antara A-D.
+- "penjelasan" menerangkan mengapa jawapan itu betul dan mengapa pengganggu utama salah.
+
+SOALAN SUBJEKTIF
+- Nyatakan markah dalam soalan, cth: "(4 markah)".
+- "skema_jawapan" disusun dalam bentuk titik, setiap titik dengan markah, cth:
+  "1. ... (1m)\n2. ... (1m)". Sertakan "Terima jawapan lain yang munasabah" bagi aras Tinggi/KBAT.
+
+Pulangkan JSON sahaja, mengikut skema yang diberikan.
+`.trim();
+
+function schemaSoalan(jenis: Jenis, arasDibenarkan: readonly Aras[], bilangan: number): object {
+  const common = {
+    soalan: { type: 'string', description: 'Teks soalan penuh (termasuk situasi/rangsangan bagi KBAT)' },
+    aras_kognitif: { type: 'string', enum: arasDibenarkan },
+    markah: { type: 'integer', minimum: 1, maximum: 12 },
+    elemen_kbat: { type: 'string', description: 'Kemahiran KBAT/elemen mampan yang diuji; kosong jika tiada' },
+  };
+  const item =
+    jenis === 'Objektif'
+      ? {
+          type: 'object',
+          properties: {
+            ...common,
+            pilihan_jawapan: {
+              type: 'object',
+              properties: { A: { type: 'string' }, B: { type: 'string' }, C: { type: 'string' }, D: { type: 'string' } },
+              required: ['A', 'B', 'C', 'D'],
+            },
+            jawapan_betul: { type: 'string', enum: ['A', 'B', 'C', 'D'] },
+            penjelasan: { type: 'string' },
+          },
+          required: ['soalan', 'aras_kognitif', 'pilihan_jawapan', 'jawapan_betul', 'penjelasan', 'markah'],
+        }
+      : {
+          type: 'object',
+          properties: {
+            ...common,
+            skema_jawapan: { type: 'string', description: 'Skema pemarkahan terperinci dengan markah bagi setiap titik' },
+          },
+          required: ['soalan', 'aras_kognitif', 'skema_jawapan', 'markah'],
+        };
+
+  return {
+    type: 'object',
+    properties: { soalan: { type: 'array', minItems: bilangan, maxItems: bilangan, items: item } },
+    required: ['soalan'],
+  };
+}
+
+export interface JanaSoalanInput {
+  dskp: TajukDskp;
+  aras: Aras | 'Campuran';
+  jenis: Jenis;
+  bilangan: number;
+}
+
+export async function janaSoalanAI({ dskp, aras, jenis, bilangan }: JanaSoalanInput): Promise<Soalan[]> {
+  const arasDibenarkan = aras === 'Campuran' ? ARAS : ([aras] as const);
+  const arahanAras =
+    aras === 'Campuran'
+      ? 'Campurkan aras dengan nisbah lebih kurang 5:3:2 (Rendah : Sederhana : Tinggi/KBAT).'
+      : `Semua soalan mestilah pada aras ${aras}.`;
+
+  const prompt = `
+Jana TEPAT ${bilangan} soalan ${jenis.toUpperCase()} Pendidikan Islam.
+
+Tingkatan: ${dskp.tingkatan}
+Bidang: ${dskp.bidang}
+Tajuk: ${dskp.tajuk}
+Standard Kandungan: ${dskp.standard_kandungan}
+Standard Pembelajaran:
+${dskp.standard_pembelajaran}
+${dskp.objektif_pembelajaran ? `Objektif Pembelajaran: ${dskp.objektif_pembelajaran}` : ''}
+
+${arahanAras}
+Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya boleh, dan tiada soalan berulang.
+`.trim();
+
+  type Raw = {
+    soalan: {
+      soalan: string; aras_kognitif: string; markah: number; elemen_kbat?: string;
+      pilihan_jawapan?: Record<string, string>; jawapan_betul?: string; penjelasan?: string; skema_jawapan?: string;
+    }[];
+  };
+
+  const raw = await generateJson<Raw>({
+    systemInstruction: SYSTEM_SOALAN,
+    prompt,
+    schema: schemaSoalan(jenis, arasDibenarkan, bilangan),
+    temperature: 0.7,
+  });
+
+  // Sahkan semula — jangan percaya output model secara membuta tuli.
+  const hasil: Soalan[] = [];
+  for (const s of raw.soalan ?? []) {
+    const teks = s.soalan?.trim();
+    if (!teks || !arasDibenarkan.includes(s.aras_kognitif as Aras)) continue;
+    const base = {
+      jenis_soalan: jenis,
+      aras_kognitif: s.aras_kognitif as Aras,
+      soalan: teks,
+      markah: Number.isInteger(s.markah) && s.markah > 0 ? s.markah : 1,
+      elemen_kbat: s.elemen_kbat?.trim() || null,
+    };
+
+    if (jenis === 'Objektif') {
+      const p = s.pilihan_jawapan ?? {};
+      const betul = s.jawapan_betul as Soalan['jawapan_betul'];
+      if (!(['A', 'B', 'C', 'D'] as const).every((k) => p[k]?.trim()) || !betul || !'ABCD'.includes(betul)) continue;
+      hasil.push({
+        ...base,
+        pilihan_jawapan: { A: p.A.trim(), B: p.B.trim(), C: p.C.trim(), D: p.D.trim() },
+        jawapan_betul: betul,
+        skema_jawapan: `Jawapan: ${betul}\n${s.penjelasan?.trim() ?? ''}`.trim(),
+      });
+    } else {
+      if (!s.skema_jawapan?.trim()) continue;
+      hasil.push({ ...base, pilihan_jawapan: null, jawapan_betul: null, skema_jawapan: s.skema_jawapan.trim() });
+    }
+  }
+
+  if (!hasil.length) throw new HttpError(502, 'Penjana AI tidak menghasilkan soalan yang sah. Sila cuba lagi.');
+  return hasil.slice(0, bilangan);
+}
+
+// =============================================================================
+// FUNGSI A — Jana RPT
+// =============================================================================
+
+const SYSTEM_RPT = `
+Anda ialah Ketua Panitia Pendidikan Islam sekolah menengah yang pakar menyediakan
+Rancangan Pengajaran Tahunan (RPT) mengikut format KSSM, Kementerian Pendidikan Malaysia.
+
+PERATURAN PENYUSUNAN
+1. Gunakan HANYA minggu dan rujukan tajuk (T1, T2, ...) yang diberikan. Jangan cipta tajuk baharu.
+2. Minggu bertanda "BUKAN PdP" (cuti, peperiksaan, program khas) TIDAK boleh diberi tajuk;
+   pulangkan "tajuk" sebagai senarai kosong dan catatan yang sesuai (cth: "Cuti Penggal 1").
+3. Susun tajuk mengikut urutan senarai yang diberikan (urutan DSKP). Setiap tajuk mesti
+   dijadualkan sekurang-kurangnya sekali.
+4. Agihkan masa secara munasabah: tajuk dengan lebih banyak Standard Pembelajaran diberi
+   lebih banyak minggu. Satu minggu boleh mengandungi lebih daripada satu tajuk yang pendek.
+5. Jika minggu PdP berbaki selepas semua tajuk selesai, gunakan untuk "Ulang kaji",
+   "Pentaksiran Bilik Darjah (PBD)" atau "Pengukuhan" (tajuk kosong).
+6. "catatan_aktiviti" ditulis ringkas dalam Bahasa Melayu mengikut format RPT KSSM:
+   "Aktiviti: ... | PAK21: ... | EMK: ... | PBD: TP..."
+   - PAK21: cth Think-Pair-Share, Gallery Walk, Round Table, Hot Seat.
+   - EMK (Elemen Merentas Kurikulum): cth Nilai Murni, Kreativiti dan Inovasi, TMK,
+     Kelestarian Global, Keusahawanan, Bahasa.
+   - PBD: tahap penguasaan yang disasarkan (TP1-TP6).
+
+Pulangkan JSON sahaja, mengikut skema yang diberikan.
+`.trim();
+
+const SCHEMA_RPT = {
+  type: 'object',
+  properties: {
+    minggu: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          minggu_ke: { type: 'integer' },
+          tajuk: { type: 'array', items: { type: 'string', description: 'Rujukan tajuk, cth "T3"' } },
+          catatan_aktiviti: { type: 'string' },
+        },
+        required: ['minggu_ke', 'tajuk', 'catatan_aktiviti'],
+      },
+    },
+    nota: { type: 'string', description: 'Ulasan ringkas tentang agihan masa (maksimum 3 ayat)' },
+  },
+  required: ['minggu', 'nota'],
+};
+
+export interface JanaRptInput {
+  tingkatan: number;
+  takwim: MingguTakwim[];
+  /** Tajuk DSKP yang belum diajar, dalam urutan silibus. */
+  tajuk: TajukDskp[];
+}
+
+export interface JanaRptOutput {
+  baris: BarisRpt[];
+  /** Tajuk yang tidak dijadualkan oleh AI (perlu disemak guru). */
+  tajuk_tertinggal: string[];
+  nota: string;
+}
+
+export async function janaRptAI({ tingkatan, takwim, tajuk }: JanaRptInput): Promise<JanaRptOutput> {
+  // Rujukan pendek (T1, T2 ...) menggantikan UUID: lebih jimat token dan model tidak "tersalah salin" ID.
+  const refKeId = new Map(tajuk.map((t, i) => [`T${i + 1}`, t.id]));
+  const mingguMap = new Map(takwim.map((m) => [m.minggu_ke, m]));
+
+  const senaraiMinggu = takwim
+    .map((m) => `Minggu ${m.minggu_ke} (${m.tarikh_mula} hingga ${m.tarikh_tamat})` +
+      (m.minggu_pdp ? '' : ' — BUKAN PdP') + (m.catatan ? ` — ${m.catatan}` : ''))
+    .join('\n');
+
+  const senaraiTajuk = tajuk
+    .map((t, i) => `T${i + 1} | ${t.bidang} | ${t.tajuk}\n   SK: ${t.standard_kandungan}\n   SP: ${t.standard_pembelajaran.replace(/\n/g, '; ')}`)
+    .join('\n');
+
+  const prompt = `
+Susun RPT Pendidikan Islam Tingkatan ${tingkatan}.
+
+TAKWIM (${takwim.length} minggu):
+${senaraiMinggu}
+
+TAJUK DSKP YANG BELUM DIAJAR (${tajuk.length} tajuk, mengikut urutan):
+${senaraiTajuk}
+
+Pulangkan satu entri bagi SETIAP minggu dalam takwim.
+`.trim();
+
+  const raw = await generateJson<{
+    minggu: { minggu_ke: number; tajuk: string[]; catatan_aktiviti: string }[];
+    nota: string;
+  }>({ systemInstruction: SYSTEM_RPT, prompt, schema: SCHEMA_RPT, temperature: 0.4 });
+
+  // Sahkan & normalkan: minggu mesti wujud dalam takwim, ref mesti sah,
+  // minggu bukan PdP tidak boleh bertajuk, dan setiap minggu takwim mesti ada.
+  const ikutMinggu = new Map<number, { refs: string[]; catatan: string }>();
+  for (const m of raw.minggu ?? []) {
+    const minggu = mingguMap.get(m.minggu_ke);
+    if (!minggu || ikutMinggu.has(m.minggu_ke)) continue;
+    const refs = minggu.minggu_pdp ? [...new Set((m.tajuk ?? []).filter((r) => refKeId.has(r)))] : [];
+    ikutMinggu.set(m.minggu_ke, { refs, catatan: m.catatan_aktiviti?.trim() ?? '' });
+  }
+
+  const baris: BarisRpt[] = [];
+  const dijadualkan = new Set<string>();
+  for (const m of takwim) {
+    const r = ikutMinggu.get(m.minggu_ke) ?? { refs: [], catatan: m.catatan ?? '' };
+    const asas = { minggu_ke: m.minggu_ke, tarikh_mula: m.tarikh_mula, tarikh_tamat: m.tarikh_tamat };
+    if (!r.refs.length) {
+      baris.push({ ...asas, tajuk_id: null, catatan_aktiviti: r.catatan || (m.minggu_pdp ? 'Ulang kaji / PBD' : m.catatan ?? 'Tiada PdP') });
+      continue;
+    }
+    for (const ref of r.refs) {
+      const id = refKeId.get(ref)!;
+      dijadualkan.add(id);
+      baris.push({ ...asas, tajuk_id: id, catatan_aktiviti: r.catatan });
+    }
+  }
+
+  return {
+    baris,
+    tajuk_tertinggal: tajuk.filter((t) => !dijadualkan.has(t.id)).map((t) => t.id),
+    nota: raw.nota?.trim() ?? '',
+  };
+}

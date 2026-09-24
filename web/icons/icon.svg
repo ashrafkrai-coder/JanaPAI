@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs><mask id="sabit"><rect width="512" height="512" fill="#fff"/><circle cx="291.8" cy="158.7" r="74.2" fill="#000"/></mask></defs>
+  <rect width="512" height="512" rx="102.4" fill="rgb(4,120,87)"/>
+  <circle cx="256" cy="179.2" r="87" fill="#fff" mask="url(#sabit)"/>
+  <polygon points="92.2,297 248.3,327.7 248.3,430.1 92.2,399.4" fill="#fff"/>
+  <polygon points="419.8,297 263.7,327.7 263.7,430.1 419.8,399.4" fill="#fff"/>
+</svg>

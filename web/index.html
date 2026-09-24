@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>JanaPAI</title>
+  <meta name="description" content="Penjana Soalan Pendidikan Islam KSSM Tingkatan 1-5 dan Penjana RPT berkuasa AI">
+  <meta name="theme-color" content="#047857">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="JanaPAI">
+
+  <!-- Fon: Inter (Rumi) + Amiri (teks Arab ayat/hadis) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS v4 (kompil di pelayar — tiada langkah build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'Inter', 'Amiri', ui-sans-serif, system-ui, sans-serif;
+      --font-arab: 'Amiri', serif;
+    }
+    @utility kad    { @apply rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5; }
+    @utility label  { @apply mb-1 block text-sm font-medium text-slate-700; }
+    @utility input  { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base shadow-sm
+                             focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none; }
+    @utility btn    { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold
+                             transition disabled:cursor-not-allowed disabled:opacity-50; }
+    @utility btn-utama  { @apply btn bg-emerald-700 text-white hover:bg-emerald-800; }
+    @utility btn-kedua  { @apply btn bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50; }
+    @utility btn-bahaya { @apply btn bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50; }
+    @utility lencana    { @apply inline-block rounded-full px-2 py-0.5 text-xs font-semibold; }
+    [x-cloak] { display: none !important; }
+    /* Teks campuran Rumi/Arab: arah setiap perenggan ikut kandungannya */
+    .teks-soalan { unicode-bidi: plaintext; line-height: 1.8; }
+    @media print {
+      .kad { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+
+  <script type="module" src="js/app.js"></script>
+</head>
+
+<body class="min-h-dvh bg-slate-50 font-sans text-slate-900 antialiased" x-data="app" x-cloak>
+
+  <!-- ======================================================================= -->
+  <!-- Header                                                                  -->
+  <!-- ======================================================================= -->
+  <header class="sticky top-0 z-20 bg-emerald-800 text-white shadow print:hidden">
+    <div class="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
+      <img src="icons/icon.svg" alt="" class="size-8 rounded-lg">
+      <div class="min-w-0 flex-1">
+        <h1 class="text-lg leading-tight font-bold">JanaPAI</h1>
+        <p class="truncate text-xs text-emerald-100">Pendidikan Islam KSSM · Tingkatan 1–5</p>
+      </div>
+      <template x-if="user">
+        <div class="flex items-center gap-2">
+          <span class="hidden text-sm text-emerald-100 sm:inline" x-text="user.displayName || user.email"></span>
+          <button class="rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ring-white/40 hover:bg-white/10" @click="logKeluar()">Log keluar</button>
+        </div>
+      </template>
+    </div>
+
+    <!-- Tab -->
+    <nav x-show="user" class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="Menu utama">
+      <template x-for="t in [{id:'soalan',nama:'Jana Soalan'},{id:'rpt',nama:'Jana RPT'},{id:'bank',nama:'Bank Soalan'}]" :key="t.id">
+        <button class="flex-1 rounded-t-lg px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5"
+                :class="tab === t.id ? 'bg-slate-50 text-emerald-800' : 'text-emerald-50 hover:bg-white/10'"
+                :aria-current="tab === t.id ? 'page' : null"
+                @click="tab = t.id" x-text="t.nama"></button>
+      </template>
+    </nav>
+  </header>
+
+  <!-- Luar talian -->
+  <div x-show="!online" class="bg-amber-100 px-4 py-2 text-center text-sm text-amber-900 print:hidden">
+    Anda di luar talian. Penjanaan AI dan penyimpanan memerlukan sambungan internet.
+  </div>
+
+  <main class="mx-auto max-w-5xl px-4 py-5 pb-24">
+
+    <!-- ===================================================================== -->
+    <!-- Log masuk / Daftar                                                    -->
+    <!-- ===================================================================== -->
+    <section x-show="!user" class="mx-auto mt-6 max-w-sm">
+      <div class="kad">
+        <h2 class="text-xl font-bold" x-text="auth.mode === 'masuk' ? 'Log masuk' : 'Daftar akaun guru'"></h2>
+        <p class="mt-1 text-sm text-slate-600">Jana soalan dan RPT Pendidikan Islam KSSM dengan bantuan AI.</p>
+
+        <form class="mt-5 space-y-4" @submit.prevent="hantarAuth()">
+          <div x-show="auth.mode === 'daftar'">
+            <label class="label" for="nama">Nama</label>
+            <input id="nama" class="input" x-model="auth.nama" autocomplete="name">
+          </div>
+          <div>
+            <label class="label" for="email">E-mel</label>
+            <input id="email" type="email" class="input" x-model="auth.email" required autocomplete="email">
+          </div>
+          <div>
+            <label class="label" for="password">Kata laluan</label>
+            <input id="password" type="password" class="input" x-model="auth.password" required minlength="9"
+                   :autocomplete="auth.mode === 'masuk' ? 'current-password' : 'new-password'">
+          </div>
+          <p x-show="auth.ralat" class="rounded-lg bg-red-50 p-3 text-sm text-red-700" x-text="auth.ralat"></p>
+          <button class="btn-utama w-full" :disabled="auth.loading">
+            <span x-show="auth.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span x-text="auth.mode === 'masuk' ? 'Log masuk' : 'Daftar'"></span>
+          </button>
+        </form>
+
+        <p class="mt-4 text-center text-sm text-slate-600">
+          <span x-text="auth.mode === 'masuk' ? 'Belum ada akaun?' : 'Sudah ada akaun?'"></span>
+          <button class="font-semibold text-emerald-700 hover:underline"
+                  @click="auth.mode = auth.mode === 'masuk' ? 'daftar' : 'masuk'; auth.ralat = ''"
+                  x-text="auth.mode === 'masuk' ? 'Daftar' : 'Log masuk'"></button>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB: Jana Soalan                                                      -->
+    <!-- ===================================================================== -->
+    <section x-show="user && tab === 'soalan'" class="space-y-5">
+      <div class="kad print:hidden">
+        <h2 class="text-lg font-bold">Tetapan soalan</h2>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="label" for="sq-tingkatan">Tingkatan</label>
+            <select id="sq-tingkatan" class="input" x-model.number="sq.tingkatan" @change="muatDskpSoalan()">
+              <template x-for="n in 5" :key="n"><option :value="n" :selected="n === sq.tingkatan" x-text="'Tingkatan ' + n"></option></template>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="sq-bidang">Bidang</label>
+            <select id="sq-bidang" class="input" x-model="sq.bidang" @change="muatDskpSoalan()">
+              <template x-for="b in BIDANG" :key="b"><option :value="b" :selected="b === sq.bidang" x-text="b"></option></template>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="label" for="sq-tajuk">Tajuk DSKP</label>
+            <select id="sq-tajuk" class="input" x-model="sq.dskp_id" :disabled="!sq.dskpList.length">
+              <template x-for="d in sq.dskpList" :key="d.id"><option :value="d.id" :selected="d.id === sq.dskp_id" x-text="d.tajuk"></option></template>
+            </select>
+            <p x-show="!sq.dskpList.length" class="mt-1 text-sm text-amber-700">Tiada tajuk DSKP untuk pilihan ini.</p>
+            <details x-show="dskpDipilih" class="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+              <summary class="cursor-pointer font-medium">Lihat Standard Kandungan &amp; Pembelajaran</summary>
+              <p class="mt-2"><b>SK:</b> <span x-text="dskpDipilih?.standard_kandungan"></span></p>
+              <p class="mt-1 whitespace-pre-line"><b>SP:</b> <span x-text="dskpDipilih?.standard_pembelajaran"></span></p>
+            </details>
+          </div>
+
+          <div>
+            <span class="label">Jenis soalan</span>
+            <div class="grid grid-cols-2 gap-2">
+              <template x-for="j in ['Objektif','Subjektif']" :key="j">
+                <button type="button" class="btn ring-1" @click="sq.jenis = j"
+                        :class="sq.jenis === j ? 'bg-emerald-50 text-emerald-800 ring-emerald-600' : 'bg-white text-slate-700 ring-slate-300'"
+                        x-text="j"></button>
+              </template>
+            </div>
+          </div>
+          <div>
+            <label class="label" for="sq-aras">Aras kognitif</label>
+            <select id="sq-aras" class="input" x-model="sq.aras">
+              <option value="Campuran">Campuran (5:3:2)</option>
+              <template x-for="a in ARAS" :key="a"><option :value="a" x-text="a"></option></template>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="label" for="sq-bil">Bilangan soalan: <b x-text="sq.bilangan"></b></label>
+            <input id="sq-bil" type="range" min="1" max="20" class="w-full accent-emerald-700" x-model.number="sq.bilangan">
+          </div>
+        </div>
+
+        <button class="btn-utama mt-5 w-full py-3 text-base sm:w-auto" @click="janaSoalan()" :disabled="sq.loading || !sq.dskp_id || !online">
+          <span x-show="sq.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <span x-text="sq.loading ? 'Sedang menjana…' : '✨ Jana dengan AI'"></span>
+        </button>
+      </div>
+
+      <!-- Pratonton soalan -->
+      <template x-if="sq.hasil">
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
+            <div>
+              <h2 class="text-lg font-bold">Pratonton (<span x-text="sq.hasil.soalan.length"></span> soalan)</h2>
+              <p class="text-sm text-slate-600" x-text="`Tingkatan ${sq.hasil.konteks.tingkatan} · ${sq.hasil.konteks.bidang} · ${sq.hasil.konteks.tajuk}`"></p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn-kedua" @click="cetak(true)">Cetak</button>
+              <button class="btn-utama" @click="simpanSoalanDipilih()" :disabled="sq.menyimpan || !bilSoalanDipilih">
+                <span x-text="sq.menyimpan ? 'Menyimpan…' : `Simpan ${bilSoalanDipilih} ke Bank`"></span>
+              </button>
+            </div>
+          </div>
+
+          <p class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200 print:hidden">
+            ⚠️ Soalan dijana oleh AI. Sila semak ketepatan fakta, ayat al-Quran dan hadis sebelum digunakan.
+          </p>
+
+          <template x-for="(q, i) in sq.hasil.soalan" :key="i">
+            <article class="kad" :class="!q._pilih && 'opacity-60 print:hidden'">
+              <div class="flex items-start gap-3">
+                <input type="checkbox" class="mt-1 size-5 accent-emerald-700 print:hidden" x-model="q._pilih" :aria-label="`Pilih soalan ${i + 1}`">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-bold" x-text="`Soalan ${i + 1}`"></span>
+                    <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="q.aras_kognitif"></span>
+                    <span class="lencana bg-slate-100 text-slate-700" x-text="`${q.markah} markah`"></span>
+                    <button class="ml-auto text-sm font-medium text-emerald-700 hover:underline print:hidden" @click="q._edit = !q._edit"
+                            x-text="q._edit ? 'Siap' : 'Sunting'"></button>
+                  </div>
+
+                  <!-- Paparan -->
+                  <div x-show="!q._edit">
+                    <p class="teks-soalan mt-2 whitespace-pre-line" dir="auto" x-text="q.soalan"></p>
+                    <template x-if="q.pilihan_jawapan">
+                      <ol class="mt-3 space-y-1.5">
+                        <template x-for="k in ['A','B','C','D']" :key="k">
+                          <li class="flex gap-2 rounded-lg px-3 py-2 ring-1"
+                              :class="k === q.jawapan_betul ? 'bg-emerald-50 ring-emerald-300 print:bg-transparent print:ring-slate-200' : 'ring-slate-200'">
+                            <b x-text="k + '.'"></b><span class="teks-soalan" dir="auto" x-text="q.pilihan_jawapan[k]"></span>
+                          </li>
+                        </template>
+                      </ol>
+                    </template>
+                    <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm" :class="!cetakSkema && 'print:hidden'">
+                      <p class="font-semibold text-slate-700">Skema jawapan</p>
+                      <p class="teks-soalan mt-1 whitespace-pre-line" dir="auto" x-text="q.skema_jawapan"></p>
+                      <p x-show="q.elemen_kbat" class="mt-2 text-xs text-slate-500" x-text="'Elemen KBAT: ' + q.elemen_kbat"></p>
+                    </div>
+                  </div>
+
+                  <!-- Sunting -->
+                  <div x-show="q._edit" class="mt-3 space-y-3">
+                    <textarea class="input min-h-24" dir="auto" x-model="q.soalan" aria-label="Teks soalan"></textarea>
+                    <template x-if="q.pilihan_jawapan">
+                      <div class="space-y-2">
+                        <template x-for="k in ['A','B','C','D']" :key="k">
+                          <label class="flex items-center gap-2">
+                            <input type="radio" class="size-4 accent-emerald-700" :name="`betul-${i}`" :value="k" x-model="q.jawapan_betul" :aria-label="`Jawapan betul ${k}`">
+                            <b x-text="k"></b>
+                            <input class="input" dir="auto" x-model="q.pilihan_jawapan[k]">
+                          </label>
+                        </template>
+                      </div>
+                    </template>
+                    <select class="input" x-model="q.aras_kognitif" aria-label="Aras kognitif">
+                      <template x-for="a in ARAS" :key="a"><option :value="a" x-text="a"></option></template>
+                    </select>
+                    <textarea class="input min-h-28 text-sm" dir="auto" x-model="q.skema_jawapan" aria-label="Skema jawapan"></textarea>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </template>
+        </div>
+      </template>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB: Jana RPT                                                         -->
+    <!-- ===================================================================== -->
+    <section x-show="user && tab === 'rpt'" class="space-y-5">
+      <div class="kad print:hidden">
+        <h2 class="text-lg font-bold">Tetapan RPT</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <label class="label" for="rp-tahun">Tahun</label>
+            <input id="rp-tahun" type="number" class="input" x-model.number="rp.tahun" @change="muatDataRpt()">
+          </div>
+          <div>
+            <label class="label" for="rp-kumpulan">Kumpulan takwim</label>
+            <select id="rp-kumpulan" class="input" x-model="rp.kumpulan" @change="muatDataRpt()">
+              <option value="A">A (Johor, Kedah, Kelantan, Terengganu)</option>
+              <option value="B">B (negeri lain)</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="rp-tingkatan">Tingkatan</label>
+            <select id="rp-tingkatan" class="input" x-model.number="rp.tingkatan" @change="muatDataRpt()">
+              <template x-for="n in 5" :key="n"><option :value="n" :selected="n === rp.tingkatan" x-text="'Tingkatan ' + n"></option></template>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="rp-dari">Mula dari minggu</label>
+            <select id="rp-dari" class="input" x-model.number="rp.dari_minggu" :disabled="!rp.takwim.length">
+              <template x-for="m in rp.takwim" :key="m.minggu_ke">
+                <option :value="m.minggu_ke" :selected="m.minggu_ke === rp.dari_minggu" x-text="`M${m.minggu_ke} (${tarikh(m.tarikh_mula)})`"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <p x-show="rp.memuat" class="mt-4 text-sm text-slate-500">Memuatkan takwim dan DSKP…</p>
+        <p x-show="!rp.memuat && !rp.takwim.length" class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          Takwim <span x-text="rp.tahun"></span> Kumpulan <span x-text="rp.kumpulan"></span> belum dimasukkan. Minta pentadbir mengisi jadual <code>takwim_persekolahan</code>.
+        </p>
+
+        <!-- Senarai tajuk belum diajar -->
+        <div x-show="rp.tajuk.length" class="mt-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-semibold">Tajuk yang belum diajar (<span x-text="bilTajukDipilih"></span>/<span x-text="rp.tajuk.length"></span>)</h3>
+            <div class="flex gap-3 text-sm">
+              <button class="font-medium text-emerald-700 hover:underline" @click="pilihSemuaTajuk(true)">Pilih semua</button>
+              <button class="font-medium text-emerald-700 hover:underline" @click="pilihSemuaTajuk(false)">Kosongkan</button>
+            </div>
+          </div>
+          <ul class="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-lg ring-1 ring-slate-200">
+            <template x-for="t in rp.tajuk" :key="t.id">
+              <li>
+                <label class="flex cursor-pointer items-start gap-3 px-3 py-2.5 hover:bg-slate-50">
+                  <input type="checkbox" class="mt-0.5 size-5 accent-emerald-700" x-model="t.dipilih">
+                  <span class="min-w-0 flex-1 text-sm">
+                    <span class="lencana mr-1 bg-emerald-50 text-emerald-800" x-text="t.bidang"></span>
+                    <span x-text="t.tajuk"></span>
+                    <span x-show="t.sudahDiajar" class="ml-1 text-xs text-slate-500">(sudah diajar)</span>
+                  </span>
+                </label>
+              </li>
+            </template>
+          </ul>
+        </div>
+
+        <button class="btn-utama mt-5 w-full py-3 text-base sm:w-auto" @click="janaRpt()"
+                :disabled="rp.loading || rp.memuat || !rp.takwim.length || !bilTajukDipilih || !online">
+          <span x-show="rp.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <span x-text="rp.loading ? 'Sedang menyusun RPT…' : '✨ Jana RPT dengan AI'"></span>
+        </button>
+        <p x-show="rp.rptSedia.length" class="mt-3 text-sm text-slate-600">
+          RPT tersimpan: <b x-text="rp.rptSedia.length"></b> baris untuk tahun dan tingkatan ini.
+        </p>
+      </div>
+
+      <!-- Pratonton RPT -->
+      <template x-if="rp.hasil">
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold" x-text="`RPT Pendidikan Islam Tingkatan ${rp.tingkatan} — ${rp.tahun}`"></h2>
+              <p class="text-sm text-slate-600 print:hidden">Semak dan ubah tajuk atau catatan sebelum disimpan.</p>
+            </div>
+            <div class="flex gap-2 print:hidden">
+              <button class="btn-kedua" @click="cetak(true)">Cetak</button>
+              <button class="btn-utama" @click="simpanRptHasil()" :disabled="rp.menyimpan" x-text="rp.menyimpan ? 'Menyimpan…' : 'Simpan RPT'"></button>
+            </div>
+          </div>
+
+          <p x-show="rp.hasil.nota" class="rounded-lg bg-sky-50 p-3 text-sm text-sky-900 ring-1 ring-sky-200 print:hidden" x-text="rp.hasil.nota"></p>
+          <p x-show="rp.hasil.tajuk_tertinggal.length" class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200 print:hidden">
+            ⚠️ Tajuk belum dijadualkan:
+            <span x-text="rp.hasil.tajuk_tertinggal.map((id) => tajukById(id)?.tajuk).join('; ')"></span>
+          </p>
+
+          <div class="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 print:overflow-visible print:shadow-none">
+            <table class="w-full min-w-[720px] text-left text-sm print:min-w-0">
+              <thead class="bg-emerald-50 text-emerald-900">
+                <tr>
+                  <th class="w-24 px-3 py-2.5">Minggu</th>
+                  <th class="px-3 py-2.5">Bidang / Tajuk</th>
+                  <th class="px-3 py-2.5">Standard Kandungan &amp; Pembelajaran</th>
+                  <th class="px-3 py-2.5">Catatan / Aktiviti</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 align-top">
+                <template x-for="(m, i) in rp.hasil.minggu" :key="i">
+                  <tr :class="!m.tajuk_id && 'bg-slate-50'">
+                    <td class="px-3 py-2.5">
+                      <b x-text="'M' + m.minggu_ke"></b>
+                      <div class="text-xs text-slate-500" x-text="`${tarikh(m.tarikh_mula)} – ${tarikh(m.tarikh_tamat)}`"></div>
+                    </td>
+                    <td class="px-3 py-2.5">
+                      <select class="input py-1.5 text-sm print:hidden" x-model="m.tajuk_id" aria-label="Tajuk">
+                        <option value="" :selected="!m.tajuk_id">— Tiada tajuk —</option>
+                        <template x-for="t in rp.tajuk" :key="t.id">
+                          <option :value="t.id" :selected="t.id === m.tajuk_id" x-text="`${t.bidang}: ${t.tajuk}`"></option>
+                        </template>
+                      </select>
+                      <span class="hidden print:inline" x-text="tajukById(m.tajuk_id) ? `${tajukById(m.tajuk_id).bidang}: ${tajukById(m.tajuk_id).tajuk}` : '—'"></span>
+                    </td>
+                    <td class="px-3 py-2.5 text-xs text-slate-600">
+                      <template x-if="tajukById(m.tajuk_id)">
+                        <div>
+                          <p x-text="tajukById(m.tajuk_id).standard_kandungan"></p>
+                          <p class="mt-1 whitespace-pre-line" x-text="tajukById(m.tajuk_id).standard_pembelajaran"></p>
+                        </div>
+                      </template>
+                    </td>
+                    <td class="px-3 py-2.5">
+                      <textarea class="input min-h-20 text-sm print:hidden" x-model="m.catatan_aktiviti" aria-label="Catatan aktiviti"></textarea>
+                      <span class="hidden whitespace-pre-line print:inline" x-text="m.catatan_aktiviti"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB: Bank Soalan                                                      -->
+    <!-- ===================================================================== -->
+    <section x-show="user && tab === 'bank'" class="space-y-4">
+      <div class="kad print:hidden">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <select class="input" x-model="bk.tingkatan" @change="muatBank(0)" aria-label="Tapis tingkatan">
+            <option value="">Semua tingkatan</option>
+            <template x-for="n in 5" :key="n"><option :value="n" x-text="'Tingkatan ' + n"></option></template>
+          </select>
+          <select class="input" x-model="bk.bidang" @change="muatBank(0)" aria-label="Tapis bidang">
+            <option value="">Semua bidang</option>
+            <template x-for="b in BIDANG" :key="b"><option :value="b" x-text="b"></option></template>
+          </select>
+          <select class="input" x-model="bk.aras" @change="muatBank(0)" aria-label="Tapis aras">
+            <option value="">Semua aras</option>
+            <template x-for="a in ARAS" :key="a"><option :value="a" x-text="a"></option></template>
+          </select>
+          <div class="flex gap-2">
+            <button class="btn-kedua flex-1" @click="cetak(false)" :disabled="!bk.items.length">Cetak</button>
+            <button class="btn-kedua flex-1" @click="cetak(true)" :disabled="!bk.items.length">+ Skema</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-600 print:hidden">
+        <span x-show="bk.loading">Memuatkan…</span>
+        <span x-show="!bk.loading"><b x-text="bk.jumlah"></b> soalan dalam bank.</span>
+      </p>
+
+      <template x-for="(q, i) in bk.items" :key="q.id">
+        <article class="kad">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <b class="text-sm" x-text="`${bk.offset + i + 1}.`"></b>
+            <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="q.aras_kognitif"></span>
+            <span class="lencana bg-slate-100 text-slate-700" x-text="q.jenis_soalan"></span>
+            <span class="text-slate-500" x-text="`T${q.tingkatan} · ${q.bidang} · ${q.tajuk}`"></span>
+          </div>
+          <p class="teks-soalan mt-2 whitespace-pre-line" dir="auto" x-text="q.soalan"></p>
+          <template x-if="q.pilihan_jawapan">
+            <ol class="mt-2 space-y-1">
+              <template x-for="k in ['A','B','C','D']" :key="k">
+                <li class="teks-soalan" dir="auto"><b x-text="k + '.'"></b> <span x-text="q.pilihan_jawapan[k]"></span></li>
+              </template>
+            </ol>
+          </template>
+          <details class="mt-3 rounded-lg bg-slate-50 p-3 text-sm" :open="cetakSkema" :class="!cetakSkema && 'print:hidden'">
+            <summary class="cursor-pointer font-semibold text-slate-700 print:list-none">Skema jawapan</summary>
+            <p class="teks-soalan mt-1 whitespace-pre-line" dir="auto" x-text="q.skema_jawapan"></p>
+          </details>
+          <div class="mt-3 flex gap-2 print:hidden">
+            <button class="btn-kedua py-1.5" @click="salin(q)">Salin</button>
+            <button class="btn-bahaya py-1.5" @click="padam(q.id)">Padam</button>
+          </div>
+        </article>
+      </template>
+
+      <div x-show="bk.jumlah > bk.limit" class="flex items-center justify-between print:hidden">
+        <button class="btn-kedua" :disabled="bk.offset === 0" @click="muatBank(Math.max(0, bk.offset - bk.limit))">← Sebelum</button>
+        <span class="text-sm text-slate-600" x-text="`${bk.offset + 1}–${Math.min(bk.offset + bk.limit, bk.jumlah)} daripada ${bk.jumlah}`"></span>
+        <button class="btn-kedua" :disabled="bk.offset + bk.limit >= bk.jumlah" @click="muatBank(bk.offset + bk.limit)">Seterusnya →</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div x-show="toast" x-transition.opacity role="status" aria-live="polite"
+       class="fixed inset-x-4 bottom-4 z-30 mx-auto max-w-md rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg print:hidden"
+       :class="toast?.jenis === 'ralat' ? 'bg-red-700' : 'bg-slate-900'"
+       x-text="toast?.mesej" @click="toast = null"></div>
+</body>
+</html>

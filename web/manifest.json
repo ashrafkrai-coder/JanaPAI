@@ -1,0 +1,25 @@
+{
+  "name": "JanaPAI — Penjana Soalan & RPT Pendidikan Islam",
+  "short_name": "JanaPAI",
+  "description": "Jana soalan Pendidikan Islam KSSM Tingkatan 1-5 dan Rancangan Pengajaran Tahunan dengan bantuan AI.",
+  "lang": "ms",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#047857",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Jana Soalan", "url": "./?tab=soalan", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Jana RPT", "url": "./?tab=rpt", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

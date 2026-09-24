@@ -1,0 +1,65 @@
+// Pembalut handler Express untuk Nhost Functions: CORS, kaedah POST, dan format ralat seragam.
+// Fail/folder bermula dengan "_" tidak didedahkan sebagai endpoint oleh Nhost.
+import type { Request, Response } from 'express';
+
+export class HttpError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+export interface Ctx {
+  body: Record<string, unknown>;
+  /** Header `Authorization: Bearer <accessToken>` pengguna — dihantar semula ke Hasura. */
+  authorization: string;
+}
+
+export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
+  return async (req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    if (req.method !== 'POST') return res.status(405).json({ message: 'Gunakan kaedah POST.' });
+
+    const authorization = req.headers.authorization;
+    if (!authorization?.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Sila log masuk terlebih dahulu.' });
+    }
+
+    try {
+      const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
+      res.status(200).json(await fn({ body, authorization }));
+    } catch (err) {
+      const status = err instanceof HttpError ? err.status : 500;
+      if (status >= 500) console.error(err);
+      res.status(status).json({
+        message: err instanceof HttpError ? err.message : 'Ralat dalaman pelayan. Sila cuba lagi.',
+      });
+    }
+  };
+}
+
+// --- Pengesahan input ringkas -------------------------------------------------
+
+export function intInRange(value: unknown, min: number, max: number, name: string): number {
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < min || n > max) {
+    throw new HttpError(400, `${name} mesti integer antara ${min} dan ${max}.`);
+  }
+  return n;
+}
+
+export function oneOf<T extends string>(value: unknown, allowed: readonly T[], name: string): T {
+  if (!allowed.includes(value as T)) {
+    throw new HttpError(400, `${name} mesti salah satu daripada: ${allowed.join(', ')}.`);
+  }
+  return value as T;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function uuid(value: unknown, name: string): string {
+  if (typeof value !== 'string' || !UUID_RE.test(value)) throw new HttpError(400, `${name} tidak sah.`);
+  return value;
+}
