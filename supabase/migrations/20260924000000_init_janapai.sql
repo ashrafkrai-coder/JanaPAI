@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- -----------------------------------------------------------------------------
 -- Fungsi trigger umum: kemas kini updated_at secara automatik
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.set_updated_at()
+CREATE OR REPLACE FUNCTION public.janapai_set_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -51,7 +51,7 @@ CREATE INDEX dskp_tingkatan_bidang_idx ON public.dskp (tingkatan, bidang);
 
 CREATE TRIGGER dskp_set_updated_at
   BEFORE UPDATE ON public.dskp
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.janapai_set_updated_at();
 
 -- =============================================================================
 -- 2. takwim_persekolahan — Takwim tahunan sekolah
