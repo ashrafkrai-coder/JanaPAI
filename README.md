@@ -68,7 +68,7 @@ Dalam Dashboard › **Edge Functions › Secrets**, tambah:
 | --- | --- |
 | `GEMINI_API_KEY` | Dari [Google AI Studio](https://aistudio.google.com/apikey) |
 | `KATA_LALUAN_PANITIA` | Kata laluan bersama panitia |
-| `GEMINI_MODEL` | Pilihan, lalai `gemini-2.5-flash` |
+| `GEMINI_MODEL` | Pilihan, lalai `gemini-3.5-flash` |
 | `HAD_JANA_SEJAM` | Pilihan, lalai `60` |
 
 Atau salin `supabase/functions/.env.example` ke `supabase/functions/.env`, isi, dan jalankan `npm run secrets:set`.

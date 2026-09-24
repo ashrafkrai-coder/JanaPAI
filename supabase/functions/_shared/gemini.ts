@@ -7,7 +7,8 @@
 import { ApiError, GoogleGenAI } from 'npm:@google/genai@2';
 import { HttpError } from './http.ts';
 
-const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+// Gemini 3.x: Google mengesyorkan temperature/top_p/top_k lalai — jangan tetapkan.
+const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash';
 
 let client: GoogleGenAI | null = null;
 function ai(): GoogleGenAI {
@@ -73,7 +74,6 @@ async function generateJson<T>(opts: {
   systemInstruction: string;
   prompt: string;
   schema: object;
-  temperature: number;
 }): Promise<T> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= 2; attempt++) {
@@ -83,7 +83,6 @@ async function generateJson<T>(opts: {
         contents: opts.prompt,
         config: {
           systemInstruction: opts.systemInstruction,
-          temperature: opts.temperature,
           responseMimeType: 'application/json',
           responseJsonSchema: opts.schema,
         },
@@ -244,7 +243,6 @@ Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya bole
     systemInstruction: SYSTEM_SOALAN,
     prompt,
     schema: schemaSoalan(jenis, arasDibenarkan, bilangan),
-    temperature: 0.7,
   });
 
   // Sahkan semula — jangan percaya output model secara membuta tuli.
@@ -373,7 +371,7 @@ Pulangkan satu entri bagi SETIAP minggu dalam takwim.
   const raw = await generateJson<{
     minggu: { minggu_ke: number; tajuk: string[]; catatan_aktiviti: string }[];
     nota: string;
-  }>({ systemInstruction: SYSTEM_RPT, prompt, schema: SCHEMA_RPT, temperature: 0.4 });
+  }>({ systemInstruction: SYSTEM_RPT, prompt, schema: SCHEMA_RPT });
 
   // Sahkan & normalkan: minggu mesti wujud dalam takwim, ref mesti sah,
   // minggu bukan PdP tidak boleh bertajuk, dan setiap minggu takwim mesti ada.
