@@ -1,4 +1,4 @@
-// Token akses panitia (JWT HS256) — pengganti log masuk akaun.
+// Token akses panitia (JWT HS256/384/512, ikut konfigurasi Hasura) — pengganti log masuk akaun.
 // Ditandatangani dengan kunci yang SAMA seperti Hasura (NHOST_JWT_SECRET, disediakan oleh Nhost
 // kepada functions), jadi Hasura menerima token ini secara terus dengan role `panitia`.
 // Tiada pakej tambahan: guna modul `crypto` Node sahaja.
@@ -8,28 +8,35 @@ import { HttpError } from './http';
 const ROLE = 'panitia';
 const TEMPOH_SAAT = 30 * 24 * 60 * 60; // 30 hari
 
-function kunci(): string {
+const ALGO = { HS256: 'sha256', HS384: 'sha384', HS512: 'sha512' } as const;
+type Alg = keyof typeof ALGO;
+
+/** Kunci & algoritma yang dikongsi dengan Hasura. Format Nhost: {"type":"HS256","key":"..."}. */
+function konfigJwt(): { alg: Alg; key: string } {
   const raw = process.env.NHOST_JWT_SECRET;
   if (!raw) throw new HttpError(500, 'تتڤن ڤلاين: NHOST_JWT_SECRET تيدق دتتڤکن.');
-  // Format Nhost: {"type":"HS256","key":"..."}; terima juga kunci mentah.
+  let cfg: { type?: string; key?: string };
   try {
-    const cfg = JSON.parse(raw) as { type?: string; key?: string };
-    if (cfg.type && cfg.type !== 'HS256') throw new Error(`Jenis JWT ${cfg.type} tidak disokong`);
-    if (cfg.key) return cfg.key;
-  } catch (err) {
-    if (err instanceof SyntaxError) return raw;
-    throw err;
+    cfg = JSON.parse(raw);
+  } catch {
+    return { alg: 'HS256', key: raw }; // kunci mentah
   }
-  return raw;
+  const alg = (cfg.type ?? 'HS256') as Alg;
+  if (!(alg in ALGO)) throw new HttpError(500, `تتڤن ڤلاين: جنيس JWT ${cfg.type} تيدق دسوکوڠ.`);
+  if (!cfg.key) throw new HttpError(500, 'تتڤن ڤلاين: NHOST_JWT_SECRET تياد "key".');
+  return { alg, key: cfg.key };
 }
 
 const b64url = (buf: Buffer | string) => Buffer.from(buf).toString('base64url');
-const tandatangan = (data: string) => createHmac('sha256', kunci()).update(data).digest();
+const tandatangan = (data: string) => {
+  const { alg, key } = konfigJwt();
+  return createHmac(ALGO[alg], key).update(data).digest();
+};
 
 export function keluarkanToken(): { token: string; tamat: number } {
   const sekarang = Math.floor(Date.now() / 1000);
   const tamat = sekarang + TEMPOH_SAAT;
-  const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const header = b64url(JSON.stringify({ alg: konfigJwt().alg, typ: 'JWT' }));
   const payload = b64url(JSON.stringify({
     sub: ROLE,
     iss: 'hasura-auth',

@@ -35,8 +35,10 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>, opts: { awam?: b
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
       if (status >= 500) console.error(err);
+      // Punca teknikal disertakan (tiada rahsia di dalamnya) supaya panitia boleh melaporkan ralat.
+      const punca = (err as Error)?.message?.slice(0, 300) ?? String(err);
       res.status(status).json({
-        message: err instanceof HttpError ? err.message : 'رالت دالمن ڤلاين. سيلا چوبا لاݢي.',
+        message: err instanceof HttpError ? err.message : `رالت دالمن ڤلاين. سيلا چوبا لاݢي. (${punca})`,
       });
     }
   };
