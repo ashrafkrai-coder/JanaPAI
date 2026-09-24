@@ -35,6 +35,8 @@ export interface TajukDskp {
   tajuk: string;
   standard_kandungan: string;
   standard_pembelajaran: string;
+  /** Tafsiran TP1-TP6 (indeks 0 = TP1). */
+  standard_prestasi: string[] | null;
   objektif_pembelajaran: string | null;
 }
 
@@ -56,6 +58,8 @@ export interface Soalan {
   skema_jawapan: string;
   markah: number;
   elemen_kbat: string | null;
+  /** Tahap Penguasaan yang diuji (1-6), jika DSKP ada Standard Prestasi. */
+  tahap_penguasaan: number | null;
 }
 
 export interface BarisRpt {
@@ -170,6 +174,7 @@ function schemaSoalan(jenis: Jenis, arasDibenarkan: readonly Aras[], bilangan: n
     aras_kognitif: { type: 'string', enum: arasDibenarkan },
     markah: { type: 'integer', minimum: 1, maximum: 12 },
     elemen_kbat: { type: 'string', description: 'Kemahiran KBAT/elemen mampan yang diuji; kosong jika tiada' },
+    tahap_penguasaan: { type: 'integer', minimum: 1, maximum: 6, description: 'TP (1-6) yang diuji mengikut Standard Prestasi' },
   };
   const item =
     jenis === 'Objektif'
@@ -203,6 +208,12 @@ function schemaSoalan(jenis: Jenis, arasDibenarkan: readonly Aras[], bilangan: n
   };
 }
 
+/** Blok teks "Standard Prestasi" untuk prompt (kosong jika tiada data TP). */
+function senaraiTp(dskp: TajukDskp): string {
+  if (!dskp.standard_prestasi?.length) return '';
+  return 'Standard Prestasi (Tahap Penguasaan):\n' + dskp.standard_prestasi.map((t, i) => `TP${i + 1}: ${t}`).join('\n');
+}
+
 export interface JanaSoalanInput {
   dskp: TajukDskp;
   aras: Aras | 'Campuran';
@@ -226,15 +237,18 @@ Tajuk: ${dskp.tajuk}
 Standard Kandungan: ${dskp.standard_kandungan}
 Standard Pembelajaran:
 ${dskp.standard_pembelajaran}
+${senaraiTp(dskp)}
 ${dskp.objektif_pembelajaran ? `Objektif Pembelajaran: ${dskp.objektif_pembelajaran}` : ''}
 
 ${arahanAras}
 Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya boleh, dan tiada soalan berulang.
+${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di atas dan isi "tahap_penguasaan" dengan TP yang diuji
+(panduan: Rendah ≈ TP1-TP2, Sederhana ≈ TP3-TP4, Tinggi ≈ TP5, KBAT ≈ TP5-TP6).` : ''}
 `.trim();
 
   type Raw = {
     soalan: {
-      soalan: string; aras_kognitif: string; markah: number; elemen_kbat?: string;
+      soalan: string; aras_kognitif: string; markah: number; elemen_kbat?: string; tahap_penguasaan?: number;
       pilihan_jawapan?: Record<string, string>; jawapan_betul?: string; penjelasan?: string; skema_jawapan?: string;
     }[];
   };
@@ -256,6 +270,8 @@ Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya bole
       soalan: teks,
       markah: Number.isInteger(s.markah) && s.markah > 0 ? s.markah : 1,
       elemen_kbat: s.elemen_kbat?.trim() || null,
+      tahap_penguasaan: Number.isInteger(s.tahap_penguasaan) && s.tahap_penguasaan! >= 1 && s.tahap_penguasaan! <= 6
+        ? s.tahap_penguasaan! : null,
     };
 
     if (jenis === 'Objektif') {
@@ -303,7 +319,8 @@ PERATURAN PENYUSUNAN
    - PAK21: nama teknik boleh kekal dalam bahasa asal (cth Think-Pair-Share, Gallery Walk).
    - EMK (Elemen Merentas Kurikulum): cth نيلاي موروني، کرياتيۏيتي دان اينوۏاسي، TMK،
      کلستارين ݢلوبل، کأوسهاوانن، بهاس.
-   - PBD: tahap penguasaan yang disasarkan (TP1-TP6).
+   - PBD: tahap penguasaan yang disasarkan (TP1-TP6), dipilih daripada Standard Prestasi tajuk
+     itu (jika diberi) dan sesuai dengan aktiviti minggu tersebut.
 
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
 `.trim();
@@ -353,7 +370,8 @@ export async function janaRptAI({ tingkatan, takwim, tajuk }: JanaRptInput): Pro
     .join('\n');
 
   const senaraiTajuk = tajuk
-    .map((t, i) => `T${i + 1} | ${t.bidang} | ${t.tajuk}\n   SK: ${t.standard_kandungan}\n   SP: ${t.standard_pembelajaran.replace(/\n/g, '; ')}`)
+    .map((t, i) => `T${i + 1} | ${t.bidang} | ${t.tajuk}\n   SK: ${t.standard_kandungan}\n   SP: ${t.standard_pembelajaran.replace(/\n/g, '; ')}` +
+      (t.standard_prestasi ? `\n   TP: ${t.standard_prestasi.map((x, j) => `TP${j + 1} ${x}`).join(' | ')}` : ''))
     .join('\n');
 
   const prompt = `

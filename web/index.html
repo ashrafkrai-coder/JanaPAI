@@ -133,6 +133,16 @@
               <summary class="cursor-pointer font-medium">ليهت ستندرد کاندوڠن &amp; ڤمبلاجرن</summary>
               <p class="teks-soalan mt-2"><b>SK:</b> <span x-text="dskpDipilih?.standard_kandungan"></span></p>
               <p class="teks-soalan mt-1 whitespace-pre-line"><b>SP:</b> <span x-text="dskpDipilih?.standard_pembelajaran"></span></p>
+              <template x-if="dskpDipilih?.standard_prestasi">
+                <div class="mt-2">
+                  <b>ستندرد ڤرستاسي:</b>
+                  <ol class="mt-1 space-y-1">
+                    <template x-for="(tp, i) in dskpDipilih.standard_prestasi" :key="i">
+                      <li class="teks-soalan flex gap-2"><span class="lencana h-fit shrink-0 bg-emerald-100 text-emerald-800" x-text="'TP' + (i + 1)"></span><span x-text="tp"></span></li>
+                    </template>
+                  </ol>
+                </div>
+              </template>
             </details>
           </div>
 
@@ -194,6 +204,7 @@
                     <span class="font-bold" x-text="`سوالن ${i + 1}`"></span>
                     <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="lb(q.aras_kognitif)"></span>
                     <span class="lencana bg-slate-100 text-slate-700" x-text="`${q.markah} مارکه`"></span>
+                    <span x-show="q.tahap_penguasaan" class="lencana bg-emerald-100 text-emerald-800" x-text="'TP' + q.tahap_penguasaan"></span>
                     <button class="ms-auto text-sm font-medium text-emerald-700 hover:underline print:hidden" @click="q._edit = !q._edit"
                             x-text="q._edit ? 'سياڤ' : 'سونتيڠ'"></button>
                   </div>

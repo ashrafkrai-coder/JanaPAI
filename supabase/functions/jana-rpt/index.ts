@@ -22,7 +22,7 @@ postHandler(async ({ body }) => {
       .order('minggu_ke')
       .then((r) => semak(r) as MingguTakwim[]),
     db().from('dskp')
-      .select('id, tingkatan, bidang, tajuk, standard_kandungan, standard_pembelajaran, objektif_pembelajaran')
+      .select('id, tingkatan, bidang, tajuk, standard_kandungan, standard_pembelajaran, standard_prestasi, objektif_pembelajaran')
       .in('id', dskpIds).eq('tingkatan', tingkatan)
       .then((r) => semak(r) as TajukDskp[]),
   ]);

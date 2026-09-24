@@ -22,7 +22,7 @@ const OPS: Record<string, (b: Body) => Promise<unknown>> = {
   // --- DSKP & takwim ---------------------------------------------------------
   async getDskp(b) {
     let q = db().from('dskp')
-      .select('id, tingkatan, bidang, urutan, tajuk, standard_kandungan, standard_pembelajaran, objektif_pembelajaran')
+      .select('id, tingkatan, bidang, urutan, tajuk, standard_kandungan, standard_pembelajaran, standard_prestasi, objektif_pembelajaran')
       .eq('tingkatan', intInRange(b.tingkatan, 1, 5, 'tingkatan'));
     const bidang = pilihan(b.bidang, (v) => oneOf(v, BIDANG, 'bidang'));
     if (bidang) q = q.eq('bidang', bidang);

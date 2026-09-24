@@ -16,7 +16,7 @@ postHandler(async ({ body }) => {
   // Pastikan tajuk wujud sebelum sebarang kos AI.
   const dskp = semak(await db()
     .from('dskp')
-    .select('id, tingkatan, bidang, tajuk, standard_kandungan, standard_pembelajaran, objektif_pembelajaran')
+    .select('id, tingkatan, bidang, tajuk, standard_kandungan, standard_pembelajaran, standard_prestasi, objektif_pembelajaran')
     .eq('id', params.dskp_id)
     .maybeSingle()) as TajukDskp | null;
   if (!dskp) throw new HttpError(404, 'تاجوق DSKP تيدق دجومڤاي.');
