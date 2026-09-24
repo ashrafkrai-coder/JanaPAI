@@ -10,6 +10,13 @@ import { KUMPULAN_TAKWIM_LALAI } from './config.js';
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
 const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'];
 const TAB = ['soalan', 'rpt', 'bank'];
+
+// Nilai dalaman (kunci pangkalan data) kekal Rumi; paparan dalam Jawi.
+const LABEL = {
+  'Al-Quran': 'القرءان', Hadis: 'حديث', Akidah: 'عقيدة', Fiqah: 'فقه', Sirah: 'سيرة', Akhlak: 'اخلاق',
+  Rendah: 'رنده', Sederhana: 'سدرهان', Tinggi: 'تيڠݢي', KBAT: 'KBAT', Campuran: 'چمڤورن',
+  Objektif: 'اوبجيکتيف', Subjektif: 'سوبجيکتيف',
+};
 const TAHUN_INI = new Date().getFullYear();
 const HARI_INI = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, zon waktu tempatan
 
@@ -25,6 +32,7 @@ const pref = {
 
 Alpine.data('app', () => ({
   BIDANG, ARAS,
+  lb: (k) => LABEL[k] ?? k,
 
   // --- Umum ------------------------------------------------------------------
   user: currentUser(),
@@ -98,7 +106,7 @@ Alpine.data('app', () => ({
     try {
       return await fn();
     } catch (err) {
-      this.notify(this.online ? err.message : 'Tiada sambungan internet. Sila cuba lagi apabila dalam talian.', 'ralat');
+      this.notify(this.online ? err.message : 'تياد سمبوڠن اينترنيت. سيلا چوبا لاݢي اڤابيلا دالم تالين.', 'ralat');
       return undefined;
     }
   },
@@ -117,7 +125,7 @@ Alpine.data('app', () => ({
         const user = await signUp(a.email.trim(), a.password, a.nama.trim() || undefined);
         if (!user) {
           a.mode = 'masuk';
-          this.notify('Akaun didaftarkan. Sila sahkan e-mel anda, kemudian log masuk.');
+          this.notify('اکاءون تله ددفترکن. سيلا صحکن اي-ميل اندا، کمودين لوݢ ماسوق.');
         }
       }
       a.password = '';
@@ -151,7 +159,7 @@ Alpine.data('app', () => ({
 
   async janaSoalan() {
     const s = this.sq;
-    if (!s.dskp_id) return this.notify('Pilih tajuk DSKP terlebih dahulu.', 'ralat');
+    if (!s.dskp_id) return this.notify('ڤيليه تاجوق DSKP ترلبيه دهولو.', 'ralat');
     s.loading = true;
     try {
       const res = await this.cuba(() => janaSoalan({
@@ -160,7 +168,7 @@ Alpine.data('app', () => ({
       if (res) {
         s.hasil = { konteks: res.konteks, soalan: res.soalan.map((q) => ({ ...q, _pilih: true, _edit: false })) };
         if (res.soalan.length < Number(s.bilangan)) {
-          this.notify(`Hanya ${res.soalan.length} soalan sah dijana. Anda boleh jana semula untuk tambahan.`);
+          this.notify(`هاڽ ${res.soalan.length} سوالن صح دجان. اندا بوليه جان سمولا اونتوق تمبهن.`);
         }
       }
     } finally {
@@ -175,12 +183,12 @@ Alpine.data('app', () => ({
   async simpanSoalanDipilih() {
     const { hasil } = this.sq;
     const dipilih = hasil.soalan.filter((q) => q._pilih);
-    if (!dipilih.length) return this.notify('Tiada soalan dipilih.', 'ralat');
+    if (!dipilih.length) return this.notify('تياد سوالن دڤيليه.', 'ralat');
     this.sq.menyimpan = true;
     const ids = await this.cuba(() => simpanSoalan(dipilih.map((q) => toKoleksiRow(q, hasil.konteks))));
     this.sq.menyimpan = false;
     if (ids) {
-      this.notify(`${ids.length} soalan disimpan ke Bank Soalan.`);
+      this.notify(`${ids.length} سوالن دسيمڤن ک بڠک سوالن.`);
       hasil.soalan = hasil.soalan.filter((q) => !q._pilih);
       if (!hasil.soalan.length) this.sq.hasil = null;
     }
@@ -230,9 +238,9 @@ Alpine.data('app', () => ({
 
   async janaRpt() {
     const r = this.rp;
-    if (!r.takwim.length) return this.notify(`Takwim ${r.tahun} Kumpulan ${r.kumpulan} belum ada dalam pangkalan data.`, 'ralat');
+    if (!r.takwim.length) return this.notify(`تقويم ${r.tahun} کومڤولن ${r.kumpulan} بلوم اد دالم ڤڠکالن داتا.`, 'ralat');
     const dskp_ids = r.tajuk.filter((t) => t.dipilih).map((t) => t.id);
-    if (!dskp_ids.length) return this.notify('Pilih sekurang-kurangnya satu tajuk.', 'ralat');
+    if (!dskp_ids.length) return this.notify('ڤيليه سکورڠ-کورڠڽ ساتو تاجوق.', 'ralat');
 
     r.loading = true;
     try {
@@ -249,7 +257,7 @@ Alpine.data('app', () => ({
   async simpanRptHasil() {
     const r = this.rp;
     const bilLama = r.rptSedia.filter((x) => x.minggu_ke >= Number(r.dari_minggu)).length;
-    if (bilLama && !confirm(`RPT sedia ada dari minggu ${r.dari_minggu} (${bilLama} baris) akan digantikan. Teruskan?`)) return;
+    if (bilLama && !confirm(`RPT سديا اد دري ميڠݢو ${r.dari_minggu} (${bilLama} باريس) اکن دݢنتيکن. تروسکن؟`)) return;
 
     r.menyimpan = true;
     const bil = await this.cuba(() => simpanRpt({
@@ -257,7 +265,7 @@ Alpine.data('app', () => ({
     }));
     r.menyimpan = false;
     if (bil !== undefined) {
-      this.notify(`RPT disimpan (${bil} baris).`);
+      this.notify(`RPT دسيمڤن (${bil} باريس).`);
       r.rptSedia = (await this.cuba(() => getRpt({ tahun: Number(r.tahun), tingkatan: Number(r.tingkatan) }))) ?? [];
     }
   },
@@ -280,10 +288,10 @@ Alpine.data('app', () => ({
   },
 
   async padam(id) {
-    if (!confirm('Padam soalan ini daripada bank?')) return;
+    if (!confirm('ڤادم سوالن اين درڤد بڠک؟')) return;
     const ok = await this.cuba(() => padamSoalan(id).then(() => true));
     if (ok) {
-      this.notify('Soalan dipadam.');
+      this.notify('سوالن دڤادم.');
       this.muatBank(this.bk.items.length === 1 && this.bk.offset ? this.bk.offset - this.bk.limit : this.bk.offset);
     }
   },
@@ -292,9 +300,9 @@ Alpine.data('app', () => ({
     const pilihan = q.pilihan_jawapan
       ? '\n' + ['A', 'B', 'C', 'D'].map((k) => `${k}. ${q.pilihan_jawapan[k]}`).join('\n')
       : '';
-    const teks = `${q.soalan}${pilihan}\n\nSkema:\n${q.skema_jawapan}`;
+    const teks = `${q.soalan}${pilihan}\n\nسکيما:\n${q.skema_jawapan}`;
     const ok = await navigator.clipboard?.writeText(teks).then(() => true, () => false);
-    this.notify(ok ? 'Soalan disalin.' : 'Tidak dapat menyalin pada pelayar ini.', ok ? 'ok' : 'ralat');
+    this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
   },
 
   cetak(denganSkema) {

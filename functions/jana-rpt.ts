@@ -11,7 +11,7 @@ export default postHandler(async ({ body, authorization }) => {
   const tingkatan = intInRange(body.tingkatan, 1, 5, 'tingkatan');
   const dari_minggu = body.dari_minggu == null ? 1 : intInRange(body.dari_minggu, 1, 53, 'dari_minggu');
   if (!Array.isArray(body.dskp_ids) || !body.dskp_ids.length || body.dskp_ids.length > 150) {
-    throw new HttpError(400, 'Pilih sekurang-kurangnya satu tajuk DSKP (maksimum 150).');
+    throw new HttpError(400, 'ڤيليه سکورڠ-کورڠڽ ساتو تاجوق DSKP (مکسيموم 150).');
   }
   const dskpIds = [...new Set(body.dskp_ids.map((id, i) => uuid(id, `dskp_ids[${i}]`)))];
 
@@ -30,12 +30,12 @@ export default postHandler(async ({ body, authorization }) => {
   );
 
   if (!data.takwim_persekolahan.length) {
-    throw new HttpError(404, `Takwim ${tahun} (Kumpulan ${kumpulan}) belum dimasukkan ke pangkalan data.`);
+    throw new HttpError(404, `تقويم ${tahun} (کومڤولن ${kumpulan}) بلوم دماسوقکن ک ڤڠکالن داتا.`);
   }
   if (!data.takwim_persekolahan.some((m) => m.minggu_pdp)) {
-    throw new HttpError(400, 'Tiada minggu PdP dalam julat takwim yang dipilih.');
+    throw new HttpError(400, 'تياد ميڠݢو PdP دالم جولت تقويم يڠ دڤيليه.');
   }
-  if (!data.dskp.length) throw new HttpError(404, 'Tajuk DSKP tidak dijumpai untuk tingkatan ini.');
+  if (!data.dskp.length) throw new HttpError(404, 'تاجوق DSKP تيدق دجومڤاي اونتوق تيڠکتن اين.');
 
   // Kekalkan urutan yang dipilih oleh guru (Hasura tidak menjamin urutan _in).
   const kedudukan = new Map(dskpIds.map((id, i) => [id, i]));

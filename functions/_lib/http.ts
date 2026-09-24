@@ -20,11 +20,11 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST') return res.status(405).json({ message: 'Gunakan kaedah POST.' });
+    if (req.method !== 'POST') return res.status(405).json({ message: 'ݢوناکن قاعده POST.' });
 
     const authorization = req.headers.authorization;
     if (!authorization?.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Sila log masuk terlebih dahulu.' });
+      return res.status(401).json({ message: 'سيلا لوݢ ماسوق ترلبيه دهولو.' });
     }
 
     try {
@@ -34,7 +34,7 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
       const status = err instanceof HttpError ? err.status : 500;
       if (status >= 500) console.error(err);
       res.status(status).json({
-        message: err instanceof HttpError ? err.message : 'Ralat dalaman pelayan. Sila cuba lagi.',
+        message: err instanceof HttpError ? err.message : 'رالت دالمن ڤلاين. سيلا چوبا لاݢي.',
       });
     }
   };
@@ -45,14 +45,14 @@ export function postHandler(fn: (ctx: Ctx) => Promise<unknown>) {
 export function intInRange(value: unknown, min: number, max: number, name: string): number {
   const n = Number(value);
   if (!Number.isInteger(n) || n < min || n > max) {
-    throw new HttpError(400, `${name} mesti integer antara ${min} dan ${max}.`);
+    throw new HttpError(400, `${name} مستي اينتيݢر انتارا ${min} دان ${max}.`);
   }
   return n;
 }
 
 export function oneOf<T extends string>(value: unknown, allowed: readonly T[], name: string): T {
   if (!allowed.includes(value as T)) {
-    throw new HttpError(400, `${name} mesti salah satu daripada: ${allowed.join(', ')}.`);
+    throw new HttpError(400, `${name} مستي ساله ساتو درڤد: ${allowed.join('، ')}.`);
   }
   return value as T;
 }
@@ -60,6 +60,6 @@ export function oneOf<T extends string>(value: unknown, allowed: readonly T[], n
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function uuid(value: unknown, name: string): string {
-  if (typeof value !== 'string' || !UUID_RE.test(value)) throw new HttpError(400, `${name} tidak sah.`);
+  if (typeof value !== 'string' || !UUID_RE.test(value)) throw new HttpError(400, `${name} تيدق صح.`);
   return value;
 }

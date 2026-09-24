@@ -57,7 +57,7 @@ export const onAuthChange = (callback) =>
 export async function signIn(email, password) {
   try {
     const res = await nhost.auth.signInEmailPassword({ email, password });
-    if (!res.body.session) throw new Error('Log masuk memerlukan pengesahan tambahan (MFA).');
+    if (!res.body.session) throw new Error('لوݢ ماسوق ممرلوکن ڤڠصحن تمبهن (MFA).');
     return res.body.session.user;
   } catch (err) {
     throw new Error(errorMessage(err));

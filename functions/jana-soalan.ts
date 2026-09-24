@@ -23,7 +23,7 @@ export default postHandler(async ({ body, authorization }) => {
     }`,
     { id: params.dskp_id },
   );
-  if (!dskp) throw new HttpError(404, 'Tajuk DSKP tidak dijumpai.');
+  if (!dskp) throw new HttpError(404, 'تاجوق DSKP تيدق دجومڤاي.');
 
   await semakHadPenjanaan(authorization);
 

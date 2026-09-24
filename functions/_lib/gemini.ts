@@ -92,14 +92,32 @@ async function generateJson<T>(opts: {
       return JSON.parse(text) as T;
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 429) throw new HttpError(429, 'Kuota Gemini API telah habis. Sila cuba sebentar lagi.');
+        if (err.status === 429) throw new HttpError(429, 'کوٴوتا Gemini API تله هابيس. سيلا چوبا سبنتر لاݢي.');
         if (err.status >= 400 && err.status < 500) throw new Error(`Gemini API ${err.status}: ${err.message}`);
       }
       lastError = err; // JSON rosak / ralat 5xx sementara → cuba sekali lagi
     }
   }
-  throw new HttpError(502, `Penjana AI gagal memulangkan hasil yang sah. (${(lastError as Error)?.message})`);
+  throw new HttpError(502, `ڤنجان AI ݢاݢل ممولڠکن حاصيل يڠ صح. (${(lastError as Error)?.message})`);
 }
+
+// =============================================================================
+// Tulisan Jawi — semua teks untuk murid/guru dipulangkan dalam Jawi
+// =============================================================================
+
+const ARAHAN_JAWI = `
+TULISAN (WAJIB)
+- SEMUA teks yang anda pulangkan (soalan, pilihan jawapan, penjelasan, skema, catatan, nota)
+  MESTI ditulis dalam TULISAN JAWI mengikut Pedoman Umum Ejaan Jawi (DBP), seperti dalam DSKP
+  dan buku teks Pendidikan Islam KSSM. JANGAN gunakan tulisan Rumi untuk ayat Bahasa Melayu.
+- Guna huruf Jawi khusus: ڤ (pa), ڠ (nga), ݢ (ga), چ (ca), ڽ (nya), ۏ (va).
+  Contoh: ڤنديديقن إسلام، ممباچ، مڽاتاکن، ڤڠاجرن، کهيدوڤن، سباݢاي، برادب دان استقامة.
+- Perkataan pinjaman Arab dieja mengikut ejaan asal Arab: صلاة، عبادة، اخلاق، حکوم، فقه، علمو.
+- Kekalkan dalam bentuk asal: angka (1, 2, 3), huruf pilihan (A, B, C, D) dan akronim
+  seperti KBAT, PdP, PBD, TP1–TP6, PAK21, EMK.
+- Singkatan: الله ﷻ، رسول الله ﷺ، نبي محمد ﷺ، عليه السلام، رضي الله عنه.
+- Nilai medan enum dalam skema JSON (cth aras_kognitif) kekal seperti yang disenaraikan.
+`.trim();
 
 // =============================================================================
 // FUNGSI B — Jana Soalan KSSM
@@ -109,12 +127,14 @@ const SYSTEM_SOALAN = `
 Anda ialah Guru Cemerlang Pendidikan Islam dan penggubal item peperiksaan (PT3/SPM) yang
 berpengalaman di bawah Kurikulum Standard Sekolah Menengah (KSSM), Kementerian Pendidikan Malaysia.
 
+${ARAHAN_JAWI}
+
 GAYA BAHASA
 - Bahasa Melayu baku dan formal, sesuai dengan tahap murid Tingkatan yang dinyatakan.
-- Gunakan istilah Pendidikan Islam yang lazim dalam buku teks KSSM (cth: solat, wuduk, akidah,
-  syariat, mukallaf, sunat muakkad, Rasulullah SAW, Allah SWT, sahabat RA).
-- Istilah Arab ditulis dalam ejaan Rumi baku; teks Arab (ayat al-Quran/hadis/doa) hanya jika
-  perlu, dengan baris yang lengkap, dan sentiasa disertakan maksudnya dalam Bahasa Melayu.
+- Gunakan istilah Pendidikan Islam yang lazim dalam buku teks KSSM (cth: صلاة، وضوء، عقيدة،
+  شريعة، مکلف، سنة مؤکد، رسول الله ﷺ، الله ﷻ، صحابة رضي الله عنهم).
+- Teks Arab (ayat al-Quran/hadis/doa) hanya jika perlu, dengan baris yang lengkap, dan sentiasa
+  disertakan maksudnya dalam Bahasa Melayu tulisan Jawi.
 
 ARAS KOGNITIF (Taksonomi Bloom semakan)
 - Rendah: mengingat dan memahami (nyatakan, senaraikan, apakah maksud).
@@ -137,9 +157,9 @@ SOALAN OBJEKTIF
 - "penjelasan" menerangkan mengapa jawapan itu betul dan mengapa pengganggu utama salah.
 
 SOALAN SUBJEKTIF
-- Nyatakan markah dalam soalan, cth: "(4 markah)".
+- Nyatakan markah dalam soalan, cth: "(4 مارکه)".
 - "skema_jawapan" disusun dalam bentuk titik, setiap titik dengan markah, cth:
-  "1. ... (1m)\n2. ... (1m)". Sertakan "Terima jawapan lain yang munasabah" bagi aras Tinggi/KBAT.
+  "1. ... (1م)\n2. ... (1م)". Sertakan "تريما جواڤن لاءين يڠ منسابه" bagi aras Tinggi/KBAT.
 
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
 `.trim();
@@ -247,7 +267,7 @@ Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya bole
         ...base,
         pilihan_jawapan: { A: p.A.trim(), B: p.B.trim(), C: p.C.trim(), D: p.D.trim() },
         jawapan_betul: betul,
-        skema_jawapan: `Jawapan: ${betul}\n${s.penjelasan?.trim() ?? ''}`.trim(),
+        skema_jawapan: `جواڤن: ${betul}\n${s.penjelasan?.trim() ?? ''}`.trim(),
       });
     } else {
       if (!s.skema_jawapan?.trim()) continue;
@@ -255,7 +275,7 @@ Pastikan setiap soalan menguji Standard Pembelajaran yang berbeza sekiranya bole
     }
   }
 
-  if (!hasil.length) throw new HttpError(502, 'Penjana AI tidak menghasilkan soalan yang sah. Sila cuba lagi.');
+  if (!hasil.length) throw new HttpError(502, 'ڤنجان AI تيدق مڠحاصيلکن سوالن يڠ صح. سيلا چوبا لاݢي.');
   return hasil.slice(0, bilangan);
 }
 
@@ -267,21 +287,23 @@ const SYSTEM_RPT = `
 Anda ialah Ketua Panitia Pendidikan Islam sekolah menengah yang pakar menyediakan
 Rancangan Pengajaran Tahunan (RPT) mengikut format KSSM, Kementerian Pendidikan Malaysia.
 
+${ARAHAN_JAWI}
+
 PERATURAN PENYUSUNAN
 1. Gunakan HANYA minggu dan rujukan tajuk (T1, T2, ...) yang diberikan. Jangan cipta tajuk baharu.
 2. Minggu bertanda "BUKAN PdP" (cuti, peperiksaan, program khas) TIDAK boleh diberi tajuk;
-   pulangkan "tajuk" sebagai senarai kosong dan catatan yang sesuai (cth: "Cuti Penggal 1").
+   pulangkan "tajuk" sebagai senarai kosong dan catatan yang sesuai (cth: "چوتي ڤڠݢل 1").
 3. Susun tajuk mengikut urutan senarai yang diberikan (urutan DSKP). Setiap tajuk mesti
    dijadualkan sekurang-kurangnya sekali.
 4. Agihkan masa secara munasabah: tajuk dengan lebih banyak Standard Pembelajaran diberi
    lebih banyak minggu. Satu minggu boleh mengandungi lebih daripada satu tajuk yang pendek.
-5. Jika minggu PdP berbaki selepas semua tajuk selesai, gunakan untuk "Ulang kaji",
-   "Pentaksiran Bilik Darjah (PBD)" atau "Pengukuhan" (tajuk kosong).
-6. "catatan_aktiviti" ditulis ringkas dalam Bahasa Melayu mengikut format RPT KSSM:
-   "Aktiviti: ... | PAK21: ... | EMK: ... | PBD: TP..."
-   - PAK21: cth Think-Pair-Share, Gallery Walk, Round Table, Hot Seat.
-   - EMK (Elemen Merentas Kurikulum): cth Nilai Murni, Kreativiti dan Inovasi, TMK,
-     Kelestarian Global, Keusahawanan, Bahasa.
+5. Jika minggu PdP berbaki selepas semua tajuk selesai, gunakan untuk "اولڠ کاجي",
+   "ڤنتقسيرن بيليق دارجه (PBD)" atau "ڤڠوکوهن" (tajuk kosong).
+6. "catatan_aktiviti" ditulis ringkas dalam Bahasa Melayu tulisan Jawi mengikut format RPT KSSM:
+   "اکتيۏيتي: ... | PAK21: ... | EMK: ... | PBD: TP..."
+   - PAK21: nama teknik boleh kekal dalam bahasa asal (cth Think-Pair-Share, Gallery Walk).
+   - EMK (Elemen Merentas Kurikulum): cth نيلاي موروني، کرياتيۏيتي دان اينوۏاسي، TMK،
+     کلستارين ݢلوبل، کأوسهاوانن، بهاس.
    - PBD: tahap penguasaan yang disasarkan (TP1-TP6).
 
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
@@ -302,7 +324,7 @@ const SCHEMA_RPT = {
         required: ['minggu_ke', 'tajuk', 'catatan_aktiviti'],
       },
     },
-    nota: { type: 'string', description: 'Ulasan ringkas tentang agihan masa (maksimum 3 ayat)' },
+    nota: { type: 'string', description: 'Ulasan ringkas tentang agihan masa dalam tulisan Jawi (maksimum 3 ayat)' },
   },
   required: ['minggu', 'nota'],
 };
@@ -368,7 +390,7 @@ Pulangkan satu entri bagi SETIAP minggu dalam takwim.
     const r = ikutMinggu.get(m.minggu_ke) ?? { refs: [], catatan: m.catatan ?? '' };
     const asas = { minggu_ke: m.minggu_ke, tarikh_mula: m.tarikh_mula, tarikh_tamat: m.tarikh_tamat };
     if (!r.refs.length) {
-      baris.push({ ...asas, tajuk_id: null, catatan_aktiviti: r.catatan || (m.minggu_pdp ? 'Ulang kaji / PBD' : m.catatan ?? 'Tiada PdP') });
+      baris.push({ ...asas, tajuk_id: null, catatan_aktiviti: r.catatan || (m.minggu_pdp ? 'اولڠ کاجي / PBD' : m.catatan ?? 'تياد PdP') });
       continue;
     }
     for (const ref of r.refs) {

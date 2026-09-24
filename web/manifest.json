@@ -1,9 +1,9 @@
 {
-  "name": "JanaPAI — Penjana Soalan & RPT Pendidikan Islam",
+  "name": "JanaPAI — ڤنجان سوالن & RPT ڤنديديقن إسلام",
   "short_name": "JanaPAI",
-  "description": "Jana soalan Pendidikan Islam KSSM Tingkatan 1-5 dan Rancangan Pengajaran Tahunan dengan bantuan AI.",
-  "lang": "ms",
-  "dir": "ltr",
+  "description": "جان سوالن ڤنديديقن إسلام KSSM تيڠکتن 1-5 دان رنچڠن ڤڠاجرن تاهونن دڠن بنتوان AI.",
+  "lang": "ms-Arab",
+  "dir": "rtl",
   "id": "./",
   "start_url": "./",
   "scope": "./",
@@ -19,7 +19,7 @@
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    { "name": "Jana Soalan", "url": "./?tab=soalan", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Jana RPT", "url": "./?tab=rpt", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "جان سوالن", "url": "./?tab=soalan", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "جان RPT", "url": "./?tab=rpt", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

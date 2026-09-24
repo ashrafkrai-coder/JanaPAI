@@ -21,7 +21,7 @@ export async function hasuraAsUser<T>(
   if (json.errors?.length) {
     const [first] = json.errors;
     if (first.extensions?.code === 'invalid-jwt' || res.status === 401) {
-      throw new HttpError(401, 'Sesi tamat. Sila log masuk semula.');
+      throw new HttpError(401, 'سسي تامت. سيلا لوݢ ماسوق سمولا.');
     }
     throw new Error(`Hasura: ${first.message}`);
   }
@@ -41,7 +41,7 @@ export async function semakHadPenjanaan(authorization: string): Promise<void> {
     { sejak: sejamLalu },
   );
   if (data.soalan_dijana_log_aggregate.aggregate.count >= had) {
-    throw new HttpError(429, `Had ${had} penjanaan sejam telah dicapai. Sila cuba sebentar lagi.`);
+    throw new HttpError(429, `حد ${had} ڤنجاناءن سجم تله دچاڤاي. سيلا چوبا سبنتر لاݢي.`);
   }
 }
 
