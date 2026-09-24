@@ -3,13 +3,14 @@
 // kepada functions), jadi Hasura menerima token ini secara terus dengan role `panitia`.
 // Tiada pakej tambahan: guna modul `crypto` Node sahaja.
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { HttpError } from './http';
 
 const ROLE = 'panitia';
 const TEMPOH_SAAT = 30 * 24 * 60 * 60; // 30 hari
 
 function kunci(): string {
   const raw = process.env.NHOST_JWT_SECRET;
-  if (!raw) throw new Error('NHOST_JWT_SECRET tidak ditetapkan');
+  if (!raw) throw new HttpError(500, 'تتڤن ڤلاين: NHOST_JWT_SECRET تيدق دتتڤکن.');
   // Format Nhost: {"type":"HS256","key":"..."}; terima juga kunci mentah.
   try {
     const cfg = JSON.parse(raw) as { type?: string; key?: string };
@@ -66,7 +67,8 @@ export function tokenSah(authorization: string | undefined): boolean {
 /** Banding kata laluan dalam masa tetap (elak serangan pemasaan). */
 export function kataLaluanBetul(cubaan: string): boolean {
   const betul = process.env.KATA_LALUAN_PANITIA;
-  if (!betul) throw new Error('KATA_LALUAN_PANITIA tidak ditetapkan');
+  // Nama pemboleh ubah (bukan nilainya) dipaparkan supaya salah konfigurasi mudah dikesan.
+  if (!betul) throw new HttpError(500, 'تتڤن ڤلاين: KATA_LALUAN_PANITIA تيدق دتتڤکن.');
   const a = createHmac('sha256', 'janapai').update(cubaan).digest();
   const b = createHmac('sha256', 'janapai').update(betul).digest();
   return timingSafeEqual(a, b);

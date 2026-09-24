@@ -11,7 +11,7 @@ const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
 let client: GoogleGenAI | null = null;
 function ai(): GoogleGenAI {
-  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY tidak ditetapkan');
+  if (!process.env.GEMINI_API_KEY) throw new HttpError(500, 'تتڤن ڤلاين: GEMINI_API_KEY تيدق دتتڤکن.');
   client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   return client;
 }
