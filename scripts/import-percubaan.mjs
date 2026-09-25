@@ -8,6 +8,8 @@ const SHEET_ID = '1D_EXLhtFEgcC7gB5xb6p40WZ7-kxOHkRo2aaPN3fBdM';
 const GID = '1014912970';
 const OUT = new URL('../supabase/seed_percubaan.sql', import.meta.url);
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
+// Kod sumber tidak seragam dalam spreadsheet -> kod piawai (disahkan oleh panitia).
+const ALIAS_SUMBER = { S: 'SBH' };
 
 async function ambilCsv() {
   if (process.argv[2]) return readFile(process.argv[2], 'utf8');
@@ -52,7 +54,7 @@ const baris = data.map((r, i) => {
   if (!int(no) || !BIDANG.includes(bidang) || !soalan || !skema) {
     throw new Error(`Baris ${i + 2} tidak sah: ${r.join(' | ')}`);
   }
-  const kod = sumber.split(',').map((s) => s.trim()).filter(Boolean);
+  const kod = [...new Set(sumber.split(',').map((s) => s.trim()).filter(Boolean).map((s) => ALIAS_SUMBER[s] ?? s))];
   const arr = `ARRAY[${kod.map(sql).join(', ')}]::text[]`;
   return `(${int(no)}, ${sql(bidang)}, ${sql(bahagian)}, ${int(noSoalan) ?? 'NULL'}, ${sql(soalan)}, ${int(markah) ?? 'NULL'}, ${sql(skema)}, ${arr}, ${sql(tag)})`;
 });
