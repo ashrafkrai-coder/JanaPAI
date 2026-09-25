@@ -35,7 +35,7 @@ export async function semakHadPenjanaan(): Promise<void> {
   }
 }
 
-export async function simpanLog(jenis: 'soalan' | 'rpt', parameter: unknown, hasil: unknown): Promise<string | null> {
+export async function simpanLog(jenis: 'soalan' | 'rpt' | 'spm', parameter: unknown, hasil: unknown): Promise<string | null> {
   const { data, error } = await db()
     .from('soalan_dijana_log')
     .insert({ jenis, parameter_carian: parameter, hasil_soalan_json: hasil })

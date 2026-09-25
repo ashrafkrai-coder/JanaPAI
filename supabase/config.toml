@@ -17,3 +17,6 @@ verify_jwt = false
 
 [db.seed]
 sql_paths = ["./seed.sql", "./seed_percubaan.sql"]
+
+[functions.jana-spm]
+verify_jwt = false

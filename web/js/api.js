@@ -91,3 +91,10 @@ export const janaSoalan = (params) => callFunction('/jana-soalan', params);
  * @returns {Promise<{ log_id: string|null, minggu: object[], tajuk_tertinggal: string[], nota: string }>}
  */
 export const janaRpt = (params) => callFunction('/jana-rpt', params);
+
+/**
+ * Satu soalan Kertas 1 SPM (20 markah, bahagian a-c). Kertas penuh = 5 panggilan serentak.
+ * @param {{ nombor: 1|2|3|4|5, tulisan: 'Rumi'|'Jawi', dskp_ids?: string[] }} params
+ * @returns {Promise<{ log_id: string|null, tulisan: string, soalan: object }>}
+ */
+export const janaSpm = (params) => callFunction('/jana-spm', params);

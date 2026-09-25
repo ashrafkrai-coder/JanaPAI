@@ -295,6 +295,179 @@ ${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di
 }
 
 // =============================================================================
+// FUNGSI C — Jana Soalan Gaya SPM (Kertas 1223/1, format LP mulai 2021)
+// =============================================================================
+
+/** Bidang bagi setiap nombor soalan Kertas 1 (1223/1). */
+export const BIDANG_SPM: Record<number, readonly string[]> = {
+  1: ['Al-Quran', 'Hadis'],
+  2: ['Akidah'],
+  3: ['Fiqah'],
+  4: ['Sirah'],
+  5: ['Akhlak'],
+};
+export const TULISAN = ['Rumi', 'Jawi'] as const;
+export type Tulisan = (typeof TULISAN)[number];
+const ARAS_SPM = ['R', 'S', 'T'] as const;
+const LABEL_ITEM = ['i', 'ii', 'iii'];
+
+export interface ItemSpm { label: string; soalan: string; markah: number; aras: 'R' | 'S' | 'T'; skema: string }
+export interface BahagianSpm { label: string; rangsangan: string | null; tajuk: string | null; item: ItemSpm[] }
+export interface SoalanSpm { nombor: number; bahagian: BahagianSpm[]; jumlah_markah: number; nota: string | null }
+
+/** Contoh item percubaan/SPM lepas daripada jadual soalan_percubaan (untuk gaya sahaja). */
+export interface ContohSpm { bahagian: string; soalan: string; markah: number | null; skema_jawapan: string }
+
+const ARAHAN_RUMI = `
+TULISAN (WAJIB)
+- SEMUA teks ditulis dalam Bahasa Melayu tulisan RUMI baku, seperti kertas SPM sebenar.
+- Istilah: Allah SWT, Rasulullah SAW, Nabi Muhammad SAW, r.a., a.s.; nama surah seperti buku teks
+  (cth: Surah al-Baqarah); istilah Arab mengikut ejaan Rumi lazim buku teks (solat, wuduk, akidah).
+- Maklumat DSKP yang diberikan ditulis dalam Jawi — fahami dan tulis semula dalam Rumi.
+`.trim();
+
+function systemSpm(tulisan: Tulisan): string {
+  return `
+Anda ialah penggubal item berpengalaman bagi peperiksaan SPM Pendidikan Islam (1223), Lembaga
+Peperiksaan, Kementerian Pendidikan Malaysia, mengikut Format Pentaksiran KSSM mulai 2021.
+
+${tulisan === 'Jawi' ? ARAHAN_JAWI : ARAHAN_RUMI}
+
+FORMAT KERTAS 1 (1223/1)
+- 5 soalan, setiap satu 20 markah (jumlah 100), jawab semua. Soalan 1: al-Quran dan Hadis;
+  Soalan 2: Akidah; Soalan 3: Ibadah/Fiqah; Soalan 4: Sirah dan Tamadun Islam; Soalan 5: Akhlak.
+- Jenis item: subjektif respons terhad, respons terbuka dan berstruktur.
+- Anda menjana SATU soalan: TEPAT tiga bahagian (a), (b), (c); setiap bahagian 1–3 item (i), (ii), (iii).
+- JUMLAH MARKAH SOALAN MESTI TEPAT 20. Setiap item bernilai 2 atau 4 markah. Pola lazim:
+  (a) 8 markah [2+2+4], (b) 6 markah [2+4], (c) 6 markah [2+4]; atau (a) 8, (b) 4, (c) 8.
+- Setiap bahagian menguji tajuk DSKP yang BERBEZA (pilih daripada senarai tajuk yang diberi),
+  sebaik-baiknya merangkumi Tingkatan 4 dan Tingkatan 5.
+
+ARAS KESUKARAN (nisbah markah Rendah : Sederhana : Tinggi = 5 : 3 : 2, iaitu ±10 : 6 : 4 markah)
+- R (mengingat/memahami): Nyatakan, Senaraikan, Apakah maksud ...
+- S (mengaplikasi/menganalisis): Jelaskan, Terangkan, Huraikan, Bezakan ...
+- T (menilai): Wajarkan, Bagaimanakah anda ..., Pada pendapat anda ..., Cadangkan ...
+  Item T biasanya berasaskan situasi kehidupan murid (rumah, sekolah, masyarakat, media sosial).
+
+RANGSANGAN
+- Soalan 1: bahagian (a) dan (b) berasaskan ayat al-Quran, (c) berasaskan hadis — HANYA ayat/hadis
+  yang tersenarai dalam tajuk DSKP yang diberi. Tulis rangsangan dalam bentuk:
+  "Firman Allah SWT:\\n[Teks ayat — Surah <nama>: <nombor ayat>]\\nAyat di atas menjelaskan <tema>.\\nBerdasarkan ayat di atas,"
+  atau "Sabda Rasulullah SAW:\\n[Teks hadis — riwayat <perawi>]\\nHadis di atas menjelaskan <tema>.\\nBerdasarkan hadis di atas,"
+  JANGAN tulis teks Arab dan JANGAN tulis terjemahan penuh — guru akan menyalin nas daripada mushaf/buku teks.
+- Soalan 2–5: rangsangan ialah satu pernyataan ringkas atau situasi (cth: "Wasatiah menjamin kecemerlangan
+  umat."), atau kosong jika item boleh berdiri sendiri.
+
+KETEPATAN SYARAK (WAJIB)
+- Selaras dengan Ahli Sunnah Wal Jamaah dan mazhab Syafie seperti diajar dalam KSSM.
+- JANGAN mereka nas, perawi, nombor ayat, tarikh atau fakta sejarah. Jika tidak pasti, jangan gunakan.
+- Isi soalan dan skema mesti dalam cakupan Standard Kandungan/Pembelajaran yang diberi.
+
+SKEMA PEMARKAHAN (setiap item)
+- Senarai isi bernombor dengan markah, cth: "1. ... (1m)\\n2. ... (1m)". Item 4 markah "Jelaskan dua ..."
+  = 2 isi × (isi 1m + huraian 1m). Berikan lebih banyak isi daripada yang diperlukan dan tulis
+  "Mana-mana dua" / "Mana-mana empat". Item aras T: tambah "Terima jawapan lain yang munasabah."
+
+Pulangkan JSON sahaja, mengikut skema yang diberikan.
+`.trim();
+}
+
+const SCHEMA_SPM = {
+  type: 'object',
+  properties: {
+    bahagian: {
+      type: 'array', minItems: 3, maxItems: 3,
+      items: {
+        type: 'object',
+        properties: {
+          tajuk_ref: { type: 'string', description: 'Rujukan tajuk DSKP yang diuji, cth "D3"' },
+          rangsangan: { type: 'string', description: 'Pernyataan/situasi/rujukan nas pendahuluan; kosong jika tiada' },
+          item: {
+            type: 'array', minItems: 1, maxItems: 3,
+            items: {
+              type: 'object',
+              properties: {
+                soalan: { type: 'string' },
+                markah: { type: 'integer', minimum: 1, maximum: 8 },
+                aras: { type: 'string', enum: ARAS_SPM },
+                skema: { type: 'string' },
+              },
+              required: ['soalan', 'markah', 'aras', 'skema'],
+            },
+          },
+        },
+        required: ['tajuk_ref', 'rangsangan', 'item'],
+      },
+    },
+  },
+  required: ['bahagian'],
+};
+
+export interface JanaSpmInput {
+  nombor: number;
+  tulisan: Tulisan;
+  /** Tajuk DSKP T4/T5 yang boleh diuji (sudah ditapis mengikut bidang soalan). */
+  tajuk: TajukDskp[];
+  contoh: ContohSpm[];
+}
+
+export async function janaSpmAI({ nombor, tulisan, tajuk, contoh }: JanaSpmInput): Promise<SoalanSpm> {
+  const refKeTajuk = new Map(tajuk.map((t, i) => [`D${i + 1}`, t]));
+  const senaraiTajuk = tajuk
+    .map((t, i) => `D${i + 1} | Tingkatan ${t.tingkatan} | ${t.bidang} | ${t.tajuk}\n   SK: ${t.standard_kandungan}\n   SP: ${t.standard_pembelajaran.replace(/\n/g, '; ')}`)
+    .join('\n');
+  const senaraiContoh = contoh
+    .map((c) => `- [${c.bahagian}, ${c.markah ?? '?'} markah] ${c.soalan}\n  Skema: ${c.skema_jawapan}`)
+    .join('\n');
+
+  const prompt = `
+Jana SOALAN ${nombor} (${BIDANG_SPM[nombor].join(' dan ')}) Kertas 1 SPM Pendidikan Islam, 20 markah.
+
+TAJUK DSKP YANG BOLEH DIUJI (${tajuk.length}):
+${senaraiTajuk}
+${senaraiContoh ? `
+CONTOH ITEM PERCUBAAN NEGERI / SPM LEPAS (rujukan gaya dan kata tugas sahaja — JANGAN salin bulat-bulat):
+${senaraiContoh}` : ''}
+`.trim();
+
+  let nota: string | null = null;
+  for (let cubaan = 1; cubaan <= 2; cubaan++) {
+    const raw = await generateJson<{
+      bahagian: { tajuk_ref: string; rangsangan: string; item: { soalan: string; markah: number; aras: string; skema: string }[] }[];
+    }>({
+      systemInstruction: systemSpm(tulisan),
+      prompt: cubaan === 1 ? prompt : `${prompt}\n\nPERINGATAN: jumlah markah semua item MESTI tepat 20.`,
+      schema: SCHEMA_SPM,
+    });
+
+    // Sahkan semula dan labelkan (a)(b)(c) / (i)(ii)(iii) mengikut kedudukan.
+    const bahagian: BahagianSpm[] = (raw.bahagian ?? []).slice(0, 3).map((b, bi) => ({
+      label: 'abc'[bi],
+      rangsangan: b.rangsangan?.trim() || null,
+      tajuk: refKeTajuk.get(b.tajuk_ref?.trim())?.tajuk ?? null,
+      item: (b.item ?? [])
+        .filter((it) => it.soalan?.trim() && it.skema?.trim() && ARAS_SPM.includes(it.aras as 'R'))
+        .slice(0, 3)
+        .map((it, ii) => ({
+          label: LABEL_ITEM[ii],
+          soalan: it.soalan.trim(),
+          markah: Number.isInteger(it.markah) && it.markah >= 1 && it.markah <= 8 ? it.markah : 2,
+          aras: it.aras as ItemSpm['aras'],
+          skema: it.skema.trim(),
+        })),
+    })).filter((b) => b.item.length);
+
+    const jumlah = bahagian.reduce((n, b) => n + b.item.reduce((m, it) => m + it.markah, 0), 0);
+    if (bahagian.length === 3 && jumlah === 20) return { nombor, bahagian, jumlah_markah: jumlah, nota: null };
+    if (cubaan === 2 && bahagian.length) {
+      nota = `Jumlah markah ${jumlah} (sepatutnya 20) — sila laraskan sebelum digunakan.`;
+      return { nombor, bahagian, jumlah_markah: jumlah, nota };
+    }
+  }
+  throw new HttpError(502, 'ڤنجان AI تيدق مڠحاصيلکن سوالن SPM يڠ صح. سيلا چوبا لاݢي.');
+}
+
+// =============================================================================
 // FUNGSI A — Jana RPT
 // =============================================================================
 

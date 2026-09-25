@@ -1,7 +1,7 @@
 // Logik antara muka JanaPAI (Alpine.js). Semua akses data melalui api.js / backend.js.
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/module.esm.js';
 import {
-  getDskp, getKoleksiSoalan, getPercubaan, getRpt, getTakwim, janaRpt, janaSoalan,
+  getDskp, getKoleksiSoalan, getPercubaan, getRpt, getTakwim, janaRpt, janaSoalan, janaSpm,
   padamSoalan, simpanRpt, simpanSoalan, toKoleksiRow,
 } from './api.js';
 import { KUMPULAN_TAKWIM_LALAI } from './config.js';
@@ -9,7 +9,15 @@ import { keluar, masuk, onMasukChange, sudahMasuk } from './backend.js';
 
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
 const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'];
-const TAB = ['soalan', 'rpt', 'bank', 'percubaan'];
+const TAB = ['soalan', 'rpt', 'bank', 'spm'];
+// Kertas 1 SPM (1223/1): nombor soalan -> bidang DSKP.
+const SOALAN_SPM = {
+  1: { bidang: ['Al-Quran', 'Hadis'], nama: 'al-Quran dan Hadis' },
+  2: { bidang: ['Akidah'], nama: 'Akidah' },
+  3: { bidang: ['Fiqah'], nama: 'Ibadah / Fiqah' },
+  4: { bidang: ['Sirah'], nama: 'Sirah dan Tamadun Islam' },
+  5: { bidang: ['Akhlak'], nama: 'Akhlak' },
+};
 // Kod sumber dalam himpunan soalan percubaan -> nama penuh (Rumi, seperti data).
 const SUMBER = {
   SBP: 'SBP', JHR: 'Johor', KDH: 'Kedah', KEL: 'Kelantan', MEL: 'Melaka', N9: 'Negeri Sembilan',
@@ -83,6 +91,17 @@ Alpine.data('app', () => ({
   // --- Bank Soalan -----------------------------------------------------------
   bk: { tingkatan: '', bidang: '', aras: '', items: [], jumlah: 0, offset: 0, limit: 20, loading: false },
 
+  // --- SPM: jana gaya SPM ------------------------------------------------------
+  SOALAN_SPM,
+  sp: {
+    mod: pref.get('sp.mod', 'jana'),        // 'jana' | 'percubaan'
+    nombor: 0,                               // 0 = kertas penuh (5 soalan)
+    tulisan: pref.get('sp.tulisan', 'Rumi'), // kertas SPM sebenar dalam Rumi
+    dskp45: [],                              // semua tajuk DSKP T4 & T5
+    fokus: [],                               // dskp_id pilihan (maks 3, soalan tunggal sahaja)
+    hasil: [],                               // [{ nombor, status: 'loading'|'ok'|'ralat', soalan, tulisan, ralat }]
+  },
+
   // --- Soalan Percubaan (semua dimuat sekali, ditapis di pelayar) -------------
   pc: { semua: [], dimuat: false, loading: false, bidang: '', bahagian: '', sumber: '', tag: '', cari: '' },
 
@@ -120,6 +139,7 @@ Alpine.data('app', () => ({
     this.sq.dskpList = [];
     this.rp.tajuk = [];
     Object.assign(this.pc, { semua: [], dimuat: false });
+    Object.assign(this.sp, { dskp45: [], fokus: [], hasil: [] });
   },
 
   muatTab() {
@@ -127,7 +147,8 @@ Alpine.data('app', () => ({
     if (this.tab === 'soalan' && !this.sq.dskpList.length) this.muatDskpSoalan();
     if (this.tab === 'rpt' && !this.rp.tajuk.length) this.muatDataRpt();
     if (this.tab === 'bank') this.muatBank(0);
-    if (this.tab === 'percubaan' && !this.pc.dimuat) this.muatPercubaan();
+    if (this.tab === 'spm' && this.sp.mod === 'percubaan' && !this.pc.dimuat) this.muatPercubaan();
+    if (this.tab === 'spm' && this.sp.mod === 'jana' && !this.sp.dskp45.length) this.muatDskpSpm();
   },
 
   notify(mesej, jenis = 'ok') {
@@ -305,6 +326,103 @@ Alpine.data('app', () => ({
       : '';
     const teks = `${q.soalan}${pilihan}\n\nسکيما:\n${q.skema_jawapan}`;
     const ok = await navigator.clipboard?.writeText(teks).then(() => true, () => false);
+    this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
+  },
+
+  // ===========================================================================
+  // SPM — Jana gaya SPM
+  // ===========================================================================
+  tukarModSpm(mod) {
+    this.sp.mod = mod;
+    pref.set('sp.mod', mod);
+    this.muatTab();
+  },
+
+  async muatDskpSpm() {
+    const res = await this.cuba(() => Promise.all([getDskp({ tingkatan: 4 }), getDskp({ tingkatan: 5 })]));
+    if (res) this.sp.dskp45 = res.flat();
+  },
+
+  /** Tajuk T4/T5 bagi soalan yang dipilih (untuk pilihan fokus). */
+  get tajukSpm() {
+    const s = SOALAN_SPM[this.sp.nombor];
+    return s ? this.sp.dskp45.filter((t) => s.bidang.includes(t.bidang)) : [];
+  },
+
+  pilihNomborSpm(n) {
+    this.sp.nombor = n;
+    this.sp.fokus = [];
+  },
+
+  togolFokus(id) {
+    const f = this.sp.fokus;
+    if (f.includes(id)) this.sp.fokus = f.filter((x) => x !== id);
+    else if (f.length < 3) f.push(id);
+    else this.notify('مکسيموم 3 تاجوق فوکوس.', 'ralat');
+  },
+
+  get sedangJanaSpm() {
+    return this.sp.hasil.some((h) => h.status === 'loading');
+  },
+
+  async janaKertasSpm() {
+    const sp = this.sp;
+    if (!this.online) return this.notify('تياد سمبوڠن اينترنيت.', 'ralat');
+    pref.set('sp.tulisan', sp.tulisan);
+    const nombor = sp.nombor ? [sp.nombor] : [1, 2, 3, 4, 5];
+    sp.hasil = nombor.map((n) => ({ nombor: n, status: 'loading', soalan: null, tulisan: sp.tulisan, ralat: '' }));
+    // Kertas penuh: 5 panggilan serentak — satu soalan gagal tidak menjejaskan yang lain.
+    await Promise.all(sp.hasil.map((_, i) => this.janaSatuSpm(i)));
+    const gagal = sp.hasil.filter((h) => h.status === 'ralat').length;
+    if (!gagal) this.notify('سوالن SPM سديا. سيلا سمق سبلوم دݢوناکن.');
+  },
+
+  async janaSatuSpm(i) {
+    const sp = this.sp;
+    const h = sp.hasil[i];
+    Object.assign(h, { status: 'loading', ralat: '' });
+    try {
+      const res = await janaSpm({
+        nombor: h.nombor,
+        tulisan: h.tulisan,
+        dskp_ids: sp.nombor ? sp.fokus : [],
+      });
+      Object.assign(h, { status: 'ok', soalan: res.soalan, tulisan: res.tulisan });
+    } catch (err) {
+      Object.assign(h, { status: 'ralat', ralat: err.message });
+    }
+  },
+
+  /** Ringkasan markah & aras (R/S/T) bagi soalan yang berjaya dijana. */
+  get ringkasanSpm() {
+    const r = { jumlah: 0, R: 0, S: 0, T: 0 };
+    for (const h of this.sp.hasil) {
+      if (h.status !== 'ok') continue;
+      for (const b of h.soalan.bahagian) for (const it of b.item) { r.jumlah += it.markah; r[it.aras] += it.markah; }
+    }
+    return r;
+  },
+
+  // Label mengikut tulisan hasil (kertas Rumi atau Jawi).
+  tSpm(tulisan, rumi, jawi) {
+    return tulisan === 'Jawi' ? jawi : rumi;
+  },
+
+  teksSoalanSpm(h, denganSkema) {
+    const m = (n) => this.tSpm(h.tulisan, `[${n} markah]`, `[${n} مارکه]`);
+    const baris = [`${h.soalan.nombor}.`];
+    for (const b of h.soalan.bahagian) {
+      baris.push(`(${b.label})${b.rangsangan ? ' ' + b.rangsangan : ''}`);
+      for (const it of b.item) {
+        baris.push(`  (${it.label}) ${it.soalan} ${m(it.markah)}`);
+        if (denganSkema) baris.push(`      ${this.tSpm(h.tulisan, 'Skema', 'سکيما')}:\n${it.skema.replace(/^/gm, '      ')}`);
+      }
+    }
+    return baris.join('\n');
+  },
+
+  async salinSpm(h) {
+    const ok = await navigator.clipboard?.writeText(this.teksSoalanSpm(h, true)).then(() => true, () => false);
     this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
   },
 

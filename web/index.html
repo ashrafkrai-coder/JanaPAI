@@ -67,7 +67,7 @@
 
     <!-- Tab -->
     <nav x-show="dalam" class="mx-auto flex max-w-5xl gap-1 px-2 sm:px-4" aria-label="مينو اوتام">
-      <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'},{id:'percubaan',nama:'ڤرچوباءن SPM'}]" :key="t.id">
+      <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'},{id:'spm',nama:'SPM'}]" :key="t.id">
         <button class="flex-1 rounded-t-lg px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5"
                 :class="tab === t.id ? 'bg-slate-50 text-emerald-800' : 'text-emerald-50 hover:bg-white/10'"
                 :aria-current="tab === t.id ? 'page' : null"
@@ -464,9 +464,140 @@
     </section>
 
     <!-- ===================================================================== -->
-    <!-- TAB: Soalan Percubaan / Ramalan SPM (kandungan Rumi)                  -->
+    <!-- TAB: SPM — Jana gaya SPM + Soalan Percubaan                           -->
     <!-- ===================================================================== -->
-    <section x-show="dalam && tab === 'percubaan'" class="space-y-4">
+    <section x-show="dalam && tab === 'spm'" class="space-y-4">
+      <div class="flex gap-2 print:hidden">
+        <button class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold ring-1"
+                :class="sp.mod === 'jana' ? 'bg-emerald-700 text-white ring-emerald-700' : 'bg-white text-slate-700 ring-slate-300'"
+                @click="tukarModSpm('jana')">جان سوالن ݢاي SPM</button>
+        <button class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold ring-1"
+                :class="sp.mod === 'percubaan' ? 'bg-emerald-700 text-white ring-emerald-700' : 'bg-white text-slate-700 ring-slate-300'"
+                @click="tukarModSpm('percubaan')">سوالن ڤرچوباءن</button>
+      </div>
+
+      <!-- ---------------- Jana gaya SPM ---------------- -->
+      <div x-show="sp.mod === 'jana'" class="space-y-4">
+        <div class="kad space-y-4 print:hidden">
+          <div>
+            <h2 class="text-lg font-bold">جان سوالن ݢاي SPM (کرتس 1 · 1223/1)</h2>
+            <p class="text-sm text-slate-600">ايکوت فورمت لمبݢ ڤڤريقساٴن: 5 سوالن × 20 مارکه، بهاݢين (a)(b)(c)، نيسبه اراس R:S:T = 5:3:2، چاکوڤن DSKP تيڠکتن 4 دان 5.</p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label class="label" for="sp-nombor">سوالن</label>
+              <select id="sp-nombor" class="input" x-model.number="sp.nombor" @change="pilihNomborSpm(sp.nombor)">
+                <option value="0">کرتس ڤنوه (سوالن 1–5، 100 مارکه)</option>
+                <template x-for="n in [1, 2, 3, 4, 5]" :key="n">
+                  <option :value="n" x-text="`سوالن ${n} — ${SOALAN_SPM[n].nama}`"></option>
+                </template>
+              </select>
+            </div>
+            <div>
+              <span class="label">توليسن</span>
+              <div class="flex gap-2">
+                <label class="btn-kedua flex-1 cursor-pointer" :class="sp.tulisan === 'Rumi' && 'ring-2 ring-emerald-600'">
+                  <input type="radio" class="sr-only" value="Rumi" x-model="sp.tulisan"> رومي (سڤرتي SPM)
+                </label>
+                <label class="btn-kedua flex-1 cursor-pointer" :class="sp.tulisan === 'Jawi' && 'ring-2 ring-emerald-600'">
+                  <input type="radio" class="sr-only" value="Jawi" x-model="sp.tulisan"> جاوي
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div x-show="sp.nombor">
+            <span class="label">تاجوق فوکوس (ڤيليهن، مکسيموم 3) — کوسوڠ = AI ڤيليه سنديري</span>
+            <div class="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
+              <p x-show="!tajukSpm.length" class="text-sm text-slate-500">ممواتکن DSKP…</p>
+              <template x-for="t in tajukSpm" :key="t.id">
+                <label class="flex cursor-pointer items-start gap-2 rounded p-1 text-sm hover:bg-slate-50">
+                  <input type="checkbox" class="mt-2" :checked="sp.fokus.includes(t.id)" @change="togolFokus(t.id); $el.checked = sp.fokus.includes(t.id)">
+                  <span><span class="lencana me-1 bg-slate-100 text-slate-700" x-text="'ت' + t.tingkatan"></span><span x-text="t.tajuk"></span></span>
+                </label>
+              </template>
+            </div>
+          </div>
+
+          <button class="btn-utama w-full sm:w-auto" @click="janaKertasSpm()" :disabled="sedangJanaSpm || !online">
+            <span x-show="sedangJanaSpm" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span x-text="sedangJanaSpm ? 'سدڠ منجان…' : (sp.nombor ? 'جان سوالن ' + sp.nombor : 'جان کرتس ڤنوه')"></span>
+          </button>
+        </div>
+
+        <template x-if="sp.hasil.length">
+          <div class="space-y-4">
+            <div class="kad flex flex-wrap items-center gap-3 text-sm print:hidden">
+              <span>جومله: <b x-text="ringkasanSpm.jumlah"></b> مارکه</span>
+              <span class="lencana bg-sky-100 text-sky-800" x-text="`R ${ringkasanSpm.R}`"></span>
+              <span class="lencana bg-amber-100 text-amber-800" x-text="`S ${ringkasanSpm.S}`"></span>
+              <span class="lencana bg-orange-100 text-orange-800" x-text="`T ${ringkasanSpm.T}`"></span>
+              <span class="text-xs text-slate-500">(ساسرن 5:3:2)</span>
+              <div class="ms-auto flex gap-2">
+                <button class="btn-kedua py-1.5" @click="cetak(false)" :disabled="sedangJanaSpm">چيتق</button>
+                <button class="btn-kedua py-1.5" @click="cetak(true)" :disabled="sedangJanaSpm">+ سکيما</button>
+              </div>
+            </div>
+
+            <p x-show="sp.hasil.some((h) => h.nombor === 1 && h.status === 'ok')" class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 print:hidden">
+              سوالن 1: AI تيدق منوليس تيکس عرب. سالين تيکس اية/حديث درڤد مصحف اتاو بوکو تيکس کدالم کوروڠن [ ] سبلوم مڠچيتق.
+            </p>
+
+            <template x-for="(h, i) in sp.hasil" :key="h.nombor">
+              <article class="kad" :class="h.tulisan === 'Rumi' && 'rumi'" :dir="h.tulisan === 'Rumi' ? 'ltr' : 'rtl'" :lang="h.tulisan === 'Rumi' ? 'ms' : 'ms-Arab'">
+                <div x-show="h.status === 'loading'" class="flex items-center gap-2 text-sm text-slate-500">
+                  <span class="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-700"></span>
+                  <span x-text="tSpm(h.tulisan, `Menjana Soalan ${h.nombor}…`, `منجان سوالن ${h.nombor}…`)"></span>
+                </div>
+                <div x-show="h.status === 'ralat'" class="flex flex-wrap items-center gap-2 text-sm print:hidden">
+                  <span class="text-red-700" dir="auto" x-text="`${h.nombor}. ${h.ralat}`"></span>
+                  <button class="btn-kedua py-1.5" @click="janaSatuSpm(i)" :disabled="!online">چوبا لاݢي</button>
+                </div>
+                <template x-if="h.status === 'ok'">
+                  <div>
+                    <div class="flex items-start gap-2">
+                      <b class="text-lg" x-text="h.soalan.nombor + '.'"></b>
+                      <p x-show="h.soalan.nota" class="flex-1 rounded bg-red-50 px-2 text-sm text-red-700 print:hidden" x-text="h.soalan.nota"></p>
+                    </div>
+                    <template x-for="b in h.soalan.bahagian" :key="b.label">
+                      <div class="mt-3 flex gap-2">
+                        <b x-text="`(${b.label})`"></b>
+                        <div class="min-w-0 flex-1">
+                          <p x-show="b.rangsangan" class="teks-soalan whitespace-pre-line" x-text="b.rangsangan"></p>
+                          <p x-show="b.tajuk" class="text-xs text-slate-500 print:hidden" dir="rtl" x-text="'DSKP: ' + b.tajuk"></p>
+                          <template x-for="it in b.item" :key="it.label">
+                            <div class="mt-2">
+                              <div class="flex gap-2">
+                                <span x-text="`(${it.label})`"></span>
+                                <p class="teks-soalan flex-1 whitespace-pre-line" x-text="it.soalan"></p>
+                                <span class="lencana h-fit shrink-0 print:hidden"
+                                      :class="{ R: 'bg-sky-100 text-sky-800', S: 'bg-amber-100 text-amber-800', T: 'bg-orange-100 text-orange-800' }[it.aras]"
+                                      x-text="it.aras"></span>
+                              </div>
+                              <p class="text-end text-sm font-semibold" x-text="tSpm(h.tulisan, `[${it.markah} markah]`, `[${it.markah} مارکه]`)"></p>
+                              <details class="mt-1 rounded-lg bg-slate-50 p-3 text-sm" :open="cetakSkema" :class="!cetakSkema && 'print:hidden'">
+                                <summary class="cursor-pointer font-semibold text-slate-700 print:list-none" x-text="tSpm(h.tulisan, 'Skema jawapan', 'سکيما جواڤن')"></summary>
+                                <p class="teks-soalan mt-1 whitespace-pre-line" x-text="it.skema"></p>
+                              </details>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="mt-3 flex gap-2 print:hidden">
+                      <button class="btn-kedua py-1.5" @click="salinSpm(h)">سالين</button>
+                      <button class="btn-kedua py-1.5" @click="janaSatuSpm(i)" :disabled="!online || sedangJanaSpm">جان سمولا</button>
+                    </div>
+                  </div>
+                </template>
+              </article>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- ---------------- Soalan Percubaan (Rumi) ---------------- -->
+      <div x-show="sp.mod === 'percubaan'" class="space-y-4">
       <div class="kad print:hidden">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <select class="input" x-model="pc.bidang" aria-label="تاڤيس بيدڠ">
@@ -524,6 +655,7 @@
       </template>
 
       <p x-show="pc.dimuat && !senaraiPc.length" class="kad text-center text-sm text-slate-500">تياد سوالن يڠ سڤادن دڠن تاڤيسن.</p>
+      </div>
     </section>
   </main>
 
