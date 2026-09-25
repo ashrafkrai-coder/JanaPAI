@@ -60,6 +60,10 @@ export interface Soalan {
   elemen_kbat: string | null;
   /** Tahap Penguasaan yang diuji (1-6), jika DSKP ada Standard Prestasi. */
   tahap_penguasaan: number | null;
+  /** true jika soalan telah melalui langkah semakan AI (moderator). */
+  disemak: boolean;
+  /** Ringkasan pembetulan oleh semakan AI; null jika tiada perubahan. */
+  catatan_semakan: string | null;
 }
 
 export interface BarisRpt {
@@ -177,8 +181,11 @@ SOALAN SUBJEKTIF
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
 `.trim();
 
-function schemaSoalan(jenis: Jenis, arasDibenarkan: readonly Aras[], bilangan: number): object {
+function schemaSoalan(jenis: Jenis, arasDibenarkan: readonly Aras[], bilangan: number, semakan = false): object {
   const common = {
+    ...(semakan && {
+      catatan_semakan: { type: 'string', description: 'Ringkasan pembetulan (1 ayat); kosong jika soalan tidak diubah' },
+    }),
     soalan: { type: 'string', description: 'Teks soalan penuh (termasuk situasi/rangsangan bagi KBAT)' },
     aras_kognitif: { type: 'string', enum: arasDibenarkan },
     markah: { type: 'integer', minimum: 1, maximum: 12 },
@@ -255,20 +262,39 @@ ${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di
 (panduan: Rendah ≈ TP1-TP2, Sederhana ≈ TP3-TP4, Tinggi ≈ TP5, KBAT ≈ TP5-TP6).` : ''}
 `.trim();
 
-  type Raw = {
-    soalan: {
-      soalan: string; aras_kognitif: string; markah: number; elemen_kbat?: string; tahap_penguasaan?: number;
-      pilihan_jawapan?: Record<string, string>; jawapan_betul?: string; penjelasan?: string; skema_jawapan?: string;
-    }[];
-  };
-
-  const raw = await generateJson<Raw>({
+  const raw = await generateJson<RawSoalan>({
     systemInstruction: SYSTEM_SOALAN,
     prompt,
     schema: schemaSoalan(jenis, arasDibenarkan, bilangan),
   });
 
-  // Sahkan semula — jangan percaya output model secara membuta tuli.
+  const asal = sahkanSoalan(raw, jenis, arasDibenarkan).slice(0, bilangan);
+  if (!asal.length) throw new HttpError(502, 'ڤنجان AI تيدق مڠحاصيلکن سوالن يڠ صح. سيلا چوبا لاݢي.');
+
+  // Langkah 2: moderator AI menyemak & membaiki. Jika gagal, pulangkan soalan asal (sudah dibayar).
+  try {
+    const semak = await semakSoalanAI({ dskp, jenis, arasDibenarkan, soalan: asal });
+    if (semak.length === asal.length) {
+      // Label aras kekal seperti yang diminta guru; moderator membaiki soalan, bukan labelnya.
+      return semak.map((s, i) => ({ ...s, aras_kognitif: asal[i].aras_kognitif }));
+    }
+    console.error(`Semakan AI memulangkan ${semak.length}/${asal.length} soalan — guna soalan asal.`);
+  } catch (err) {
+    console.error('Semakan AI gagal — guna soalan asal:', err);
+  }
+  return asal;
+}
+
+type RawSoalan = {
+  soalan: {
+    soalan: string; aras_kognitif: string; markah: number; elemen_kbat?: string; tahap_penguasaan?: number;
+    pilihan_jawapan?: Record<string, string>; jawapan_betul?: string; penjelasan?: string; skema_jawapan?: string;
+    catatan_semakan?: string;
+  }[];
+};
+
+/** Sahkan semula output model — jangan percaya secara membuta tuli. */
+function sahkanSoalan(raw: RawSoalan, jenis: Jenis, arasDibenarkan: readonly Aras[], disemak = false): Soalan[] {
   const hasil: Soalan[] = [];
   for (const s of raw.soalan ?? []) {
     const teks = s.soalan?.trim();
@@ -281,6 +307,8 @@ ${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di
       elemen_kbat: s.elemen_kbat?.trim() || null,
       tahap_penguasaan: Number.isInteger(s.tahap_penguasaan) && s.tahap_penguasaan! >= 1 && s.tahap_penguasaan! <= 6
         ? s.tahap_penguasaan! : null,
+      disemak,
+      catatan_semakan: disemak ? s.catatan_semakan?.trim() || null : null,
     };
 
     if (jenis === 'Objektif') {
@@ -298,9 +326,77 @@ ${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di
       hasil.push({ ...base, pilihan_jawapan: null, jawapan_betul: null, skema_jawapan: s.skema_jawapan.trim() });
     }
   }
+  return hasil;
+}
 
-  if (!hasil.length) throw new HttpError(502, 'ڤنجان AI تيدق مڠحاصيلکن سوالن يڠ صح. سيلا چوبا لاݢي.');
-  return hasil.slice(0, bilangan);
+// =============================================================================
+// FUNGSI B2 — Semakan (moderasi) soalan oleh AI
+// =============================================================================
+
+const SYSTEM_SEMAK = `
+Anda ialah moderator item peperiksaan Pendidikan Islam KSSM yang teliti. Tugas anda: menyemak
+soalan yang dibina oleh penggubal lain dan MEMBAIKI setiap kesilapan sebelum soalan digunakan murid.
+
+${ARAHAN_RUMI}
+
+SENARAI SEMAK (setiap soalan)
+1. KETEPATAN SYARAK & FAKTA: selaras Ahli Sunnah Wal Jamaah dan mazhab Syafie seperti diajar dalam KSSM.
+   Semak nama surah, nombor ayat, perawi hadis, tarikh dan fakta sejarah. Jika tidak pasti sesuatu
+   rujukan, buang rujukan khusus itu. JANGAN mereka nas.
+2. OBJEKTIF — TEPAT SATU JAWAPAN BETUL: uji SETIAP pengganggu satu per satu. Jika mana-mana pengganggu
+   juga boleh diterima sebagai betul (cth: ayat/hadis lain yang juga menjadi dalil bagi perkara yang
+   sama, takrif lain yang diterima, contoh lain yang turut memenuhi kehendak soalan), GANTIKAN
+   pengganggu itu dengan pilihan yang jelas salah tetapi munasabah. Pastikan "jawapan_betul" menunjuk
+   kepada pilihan yang benar-benar betul dan "penjelasan" menerangkan mengapa pengganggu utama salah.
+3. ARAS: soalan mesti benar-benar menepati aras_kognitif yang dilabel. Jika tidak (cth: soalan "KBAT"
+   yang jawapannya terlalu jelas), UBAH SOALAN supaya menepati aras itu. JANGAN tukar label aras.
+4. SKEMA: lengkap, tepat, dan markah konsisten dengan kehendak soalan.
+5. BAHASA: Bahasa Melayu Rumi baku; betulkan ejaan dan tatabahasa. Soalan mesti jelas dan tidak kabur.
+
+Pulangkan SEMUA soalan dalam bilangan dan susunan yang SAMA, dalam versi yang telah dibaiki
+(soalan yang sudah baik dipulangkan tanpa perubahan). Isi "catatan_semakan" dengan ringkasan
+pembetulan dalam satu ayat; biarkan kosong jika soalan tidak diubah.
+
+Pulangkan JSON sahaja, mengikut skema yang diberikan.
+`.trim();
+
+async function semakSoalanAI(opts: {
+  dskp: TajukDskp; jenis: Jenis; arasDibenarkan: readonly Aras[]; soalan: Soalan[];
+}): Promise<Soalan[]> {
+  const { dskp, jenis, arasDibenarkan, soalan } = opts;
+  // Bentuk sama seperti output penjana (penjelasan objektif tanpa baris "Jawapan: X").
+  const input = soalan.map((s) => ({
+    soalan: s.soalan,
+    aras_kognitif: s.aras_kognitif,
+    markah: s.markah,
+    elemen_kbat: s.elemen_kbat ?? '',
+    tahap_penguasaan: s.tahap_penguasaan,
+    ...(jenis === 'Objektif'
+      ? { pilihan_jawapan: s.pilihan_jawapan, jawapan_betul: s.jawapan_betul, penjelasan: s.skema_jawapan.replace(/^Jawapan:\s*[A-D]\s*/, '') }
+      : { skema_jawapan: s.skema_jawapan }),
+  }));
+
+  const prompt = `
+Semak dan baiki ${soalan.length} soalan ${jenis.toUpperCase()} berikut.
+
+KONTEKS DSKP
+Tingkatan: ${dskp.tingkatan}
+Bidang: ${dskp.bidang}
+Tajuk: ${dskp.tajuk}
+Standard Kandungan: ${dskp.standard_kandungan}
+Standard Pembelajaran:
+${dskp.standard_pembelajaran}
+
+SOALAN (JSON):
+${JSON.stringify(input, null, 1)}
+`.trim();
+
+  const raw = await generateJson<RawSoalan>({
+    systemInstruction: SYSTEM_SEMAK,
+    prompt,
+    schema: schemaSoalan(jenis, arasDibenarkan, soalan.length, true),
+  });
+  return sahkanSoalan(raw, jenis, arasDibenarkan, true);
 }
 
 // =============================================================================

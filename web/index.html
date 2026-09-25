@@ -244,11 +244,14 @@
                     <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="lb(q.aras_kognitif)"></span>
                     <span class="lencana-slate" x-text="`${q.markah} مارکه`"></span>
                     <span x-show="q.tahap_penguasaan" class="lencana-emerald" x-text="'TP' + q.tahap_penguasaan"></span>
+                    <span x-show="q.disemak && !q.catatan_semakan" class="lencana-sky print:hidden">✔ دسمق AI</span>
+                    <span x-show="q.catatan_semakan" class="lencana-amber print:hidden">✎ دبايقي سماسا سمقن AI</span>
                     <button class="ms-auto text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline print:hidden transition-colors duration-150" @click="q._edit = !q._edit"
                             x-text="q._edit ? 'سياڤ' : 'سونتيڠ'"></button>
                   </div>
 
                   <div x-show="!q._edit" class="mt-3">
+                    <p x-show="q.catatan_semakan" class="mb-2.5 rounded-xl bg-amber-50/70 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200/70 print:hidden" dir="auto" x-text="'Semakan AI: ' + q.catatan_semakan"></p>
                     <p class="teks-soalan whitespace-pre-line" dir="auto" x-text="q.soalan"></p>
                     <template x-if="q.pilihan_jawapan">
                       <ol class="mt-3.5 space-y-1.5">
