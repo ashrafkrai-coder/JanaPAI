@@ -10,8 +10,9 @@ const GID = '1014912970';
 const OUT = new URL('../supabase/seed_percubaan.sql', import.meta.url);
 const DIR_TAMBAHAN = new URL('../supabase/percubaan/', import.meta.url);
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
-// Kod sumber tidak seragam dalam spreadsheet -> kod piawai (disahkan oleh panitia).
-const ALIAS_SUMBER = { S: 'SBH' };
+// Kod sumber dalam spreadsheet -> kod piawai (disahkan oleh panitia). Soalan "SBP" dalam spreadsheet
+// tiada dalam kertas percubaan SBP 2026 (supabase/percubaan/sbp-2026.json), jadi dilabel berasingan.
+const ALIAS_SUMBER = { S: 'SBH', SBP: 'SBP (tidak disahkan)' };
 
 async function ambilCsv() {
   if (process.argv[2]) return readFile(process.argv[2], 'utf8');
