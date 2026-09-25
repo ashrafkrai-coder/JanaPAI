@@ -4,5 +4,5 @@
 // Kunci Gemini & service role TIDAK diletakkan di sini; ia hanya wujud di Edge Functions.
 export const SUPABASE_URL = 'https://dgwzprjwqhmqkqkemjeb.supabase.co'; // tempatan: 'http://127.0.0.1:54321'
 
-// Kumpulan takwim lalai: 'A' (Johor, Kedah, Kelantan, Terengganu) atau 'B' (negeri lain).
+// Kumpulan takwim lalai: 'A' (Kedah, Kelantan, Terengganu) atau 'B' (negeri lain).
 export const KUMPULAN_TAKWIM_LALAI = 'B';

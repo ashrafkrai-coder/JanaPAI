@@ -1,6 +1,6 @@
 // Service Worker JanaPAI — caching fail statik supaya aplikasi dibuka pantas & boleh dilancar luar talian.
 // Tukar VERSION setiap kali fail app shell berubah untuk memaksa kemas kini cache.
-const VERSION = 'v8';
+const VERSION = 'v9';
 const SHELL_CACHE = `janapai-shell-${VERSION}`;
 const CDN_CACHE = `janapai-cdn-${VERSION}`;
 

@@ -59,8 +59,8 @@ CREATE TRIGGER dskp_set_updated_at
 CREATE TABLE public.takwim_persekolahan (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   tahun        SMALLINT    NOT NULL CHECK (tahun BETWEEN 2020 AND 2100),
-  -- Kumpulan A (Johor, Kedah, Kelantan, Terengganu — hujung minggu Jumaat/Sabtu)
-  -- Kumpulan B (negeri lain — hujung minggu Sabtu/Ahad). Tarikh minggu berbeza.
+  -- Kumpulan A (Kedah, Kelantan, Terengganu — hujung minggu Jumaat/Sabtu)
+  -- Kumpulan B (negeri lain termasuk Johor sejak 2025 — hujung minggu Sabtu/Ahad). Tarikh minggu berbeza.
   kumpulan     CHAR(1)     NOT NULL DEFAULT 'B' CHECK (kumpulan IN ('A', 'B')),
   minggu_ke    SMALLINT    NOT NULL CHECK (minggu_ke BETWEEN 1 AND 53),
   tarikh_mula  DATE        NOT NULL,
