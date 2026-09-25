@@ -1,7 +1,7 @@
 // Logik antara muka JanaPAI (Alpine.js). Semua akses data melalui api.js / backend.js.
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/module.esm.js';
 import {
-  getDskp, getKoleksiSoalan, getRpt, getTakwim, janaRpt, janaSoalan,
+  getDskp, getKoleksiSoalan, getPercubaan, getRpt, getTakwim, janaRpt, janaSoalan,
   padamSoalan, simpanRpt, simpanSoalan, toKoleksiRow,
 } from './api.js';
 import { KUMPULAN_TAKWIM_LALAI } from './config.js';
@@ -9,7 +9,13 @@ import { keluar, masuk, onMasukChange, sudahMasuk } from './backend.js';
 
 const BIDANG = ['Al-Quran', 'Hadis', 'Akidah', 'Fiqah', 'Sirah', 'Akhlak'];
 const ARAS = ['Rendah', 'Sederhana', 'Tinggi', 'KBAT'];
-const TAB = ['soalan', 'rpt', 'bank'];
+const TAB = ['soalan', 'rpt', 'bank', 'percubaan'];
+// Kod sumber dalam himpunan soalan percubaan -> nama penuh (Rumi, seperti data).
+const SUMBER = {
+  SBP: 'SBP', JHR: 'Johor', KDH: 'Kedah', KEL: 'Kelantan', MEL: 'Melaka', N9: 'Negeri Sembilan',
+  PHG: 'Pahang', PP: 'Pulau Pinang', PRK: 'Perak', SBH: 'Sabah', SEL: 'Selangor', SWK: 'Sarawak',
+  TER: 'Terengganu',
+};
 
 // Nilai dalaman (kunci pangkalan data) kekal Rumi; paparan dalam Jawi.
 const LABEL = {
@@ -77,6 +83,9 @@ Alpine.data('app', () => ({
   // --- Bank Soalan -----------------------------------------------------------
   bk: { tingkatan: '', bidang: '', aras: '', items: [], jumlah: 0, offset: 0, limit: 20, loading: false },
 
+  // --- Soalan Percubaan (semua dimuat sekali, ditapis di pelayar) -------------
+  pc: { semua: [], dimuat: false, loading: false, bidang: '', bahagian: '', sumber: '', tag: '', cari: '' },
+
   // ===========================================================================
   init() {
     addEventListener('online', () => { this.online = true; });
@@ -110,6 +119,7 @@ Alpine.data('app', () => ({
     this.rp.hasil = null;
     this.sq.dskpList = [];
     this.rp.tajuk = [];
+    Object.assign(this.pc, { semua: [], dimuat: false });
   },
 
   muatTab() {
@@ -117,6 +127,7 @@ Alpine.data('app', () => ({
     if (this.tab === 'soalan' && !this.sq.dskpList.length) this.muatDskpSoalan();
     if (this.tab === 'rpt' && !this.rp.tajuk.length) this.muatDataRpt();
     if (this.tab === 'bank') this.muatBank(0);
+    if (this.tab === 'percubaan' && !this.pc.dimuat) this.muatPercubaan();
   },
 
   notify(mesej, jenis = 'ok') {
@@ -293,6 +304,45 @@ Alpine.data('app', () => ({
       ? '\n' + ['A', 'B', 'C', 'D'].map((k) => `${k}. ${q.pilihan_jawapan[k]}`).join('\n')
       : '';
     const teks = `${q.soalan}${pilihan}\n\nسکيما:\n${q.skema_jawapan}`;
+    const ok = await navigator.clipboard?.writeText(teks).then(() => true, () => false);
+    this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
+  },
+
+  // ===========================================================================
+  // Soalan Percubaan
+  // ===========================================================================
+  async muatPercubaan() {
+    const p = this.pc;
+    p.loading = true;
+    const res = await this.cuba(() => getPercubaan());
+    p.loading = false;
+    if (res) Object.assign(p, { semua: res, dimuat: true });
+  },
+
+  namaSumber: (k) => SUMBER[k] ?? k,
+
+  /** Nilai unik (tersusun) bagi satu medan, untuk pilihan penapis. */
+  pilihanPc(medan) {
+    const v = this.pc.semua.flatMap((q) => (Array.isArray(q[medan]) ? q[medan] : [q[medan]])).filter(Boolean);
+    return [...new Set(v)].sort((a, b) => a.localeCompare(b, 'ms', { numeric: true }));
+  },
+
+  get senaraiPc() {
+    const p = this.pc;
+    const cari = p.cari.trim().toLowerCase();
+    return p.semua.filter((q) => (!p.bidang || q.bidang === p.bidang)
+      && (!p.bahagian || q.bahagian === p.bahagian)
+      && (!p.sumber || q.sumber.includes(p.sumber))
+      && (!p.tag || q.tag === p.tag)
+      && (!cari || `${q.soalan}\n${q.skema_jawapan}`.toLowerCase().includes(cari)));
+  },
+
+  get jumlahMarkahPc() {
+    return this.senaraiPc.reduce((n, q) => n + (q.markah ?? 0), 0);
+  },
+
+  async salinPc(q) {
+    const teks = `${q.soalan} (${q.markah ?? '-'} markah)\n\nSkema:\n${q.skema_jawapan}`;
     const ok = await navigator.clipboard?.writeText(teks).then(() => true, () => false);
     this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
   },

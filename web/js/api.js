@@ -70,6 +70,12 @@ export const getKoleksiSoalan = ({ tingkatan = null, bidang = null, aras = null,
 export const padamSoalan = (id) => data('padamSoalan', { id });
 
 // ---------------------------------------------------------------------------
+// Soalan percubaan / ramalan SPM (Rumi, baca sahaja)
+// ---------------------------------------------------------------------------
+
+export const getPercubaan = () => data('getPercubaan');
+
+// ---------------------------------------------------------------------------
 // Penjana AI (Edge Functions — kunci Gemini kekal di server)
 // ---------------------------------------------------------------------------
 

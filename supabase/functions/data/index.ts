@@ -103,6 +103,14 @@ const OPS: Record<string, (b: Body) => Promise<unknown>> = {
     semak(await db().from('koleksi_soalan').delete().eq('id', uuid(b.id, 'id')));
     return true;
   },
+
+  // --- Soalan percubaan (himpunan kecil, ditapis di pelayar) -----------------
+  async getPercubaan() {
+    return semak(await db().from('soalan_percubaan')
+      .select('id, no_asal, bidang, bahagian, no_soalan, soalan, markah, skema_jawapan, sumber, tag')
+      .order('no_asal')
+      .limit(2000));
+  },
 };
 
 postHandler(async ({ body }) => {

@@ -9,6 +9,7 @@
     "db:push": "supabase db push",
     "functions:deploy": "supabase functions deploy masuk data jana-soalan jana-rpt",
     "secrets:set": "supabase secrets set --env-file supabase/functions/.env",
+    "percubaan": "node scripts/import-percubaan.mjs",
     "check": "cd supabase/functions && deno check */index.ts"
   },
   "devDependencies": {
