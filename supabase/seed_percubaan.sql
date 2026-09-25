@@ -1,8 +1,8 @@
 -- Dijana oleh scripts/import-percubaan.mjs pada 2026-09-25 — JANGAN sunting dengan tangan.
 -- Sumber: https://docs.google.com/spreadsheets/d/1D_EXLhtFEgcC7gB5xb6p40WZ7-kxOHkRo2aaPN3fBdM (78 soalan)
---         + supabase/percubaan/*.json (38 soalan; 9 soalan spreadsheet digantikan)
+--         + supabase/percubaan/*.json (76 soalan; 9 soalan spreadsheet digantikan)
 DELETE FROM public.soalan_percubaan
-WHERE no_asal NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 80, 81, 82, 83, 84, 85, 86, 87, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009, 10010, 10011, 10012, 10013, 10014, 10015, 10016, 10017, 10018, 10019, 10020, 10021, 10022, 10023, 10024, 10025, 10026, 10027, 10028, 10029, 10030, 10031, 10032, 10033, 10034, 10035, 10036, 10037, 10038);
+WHERE no_asal NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 80, 81, 82, 83, 84, 85, 86, 87, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009, 10010, 10011, 10012, 10013, 10014, 10015, 10016, 10017, 10018, 10019, 10020, 10021, 10022, 10023, 10024, 10025, 10026, 10027, 10028, 10029, 10030, 10031, 10032, 10033, 10034, 10035, 10036, 10037, 10038, 20001, 20002, 20003, 20004, 20005, 20006, 20007, 20008, 20009, 20010, 20011, 20012, 20013, 20014, 20015, 20016, 20017, 20018, 20019, 20020, 20021, 20022, 20023, 20024, 20025, 20026, 20027, 20028, 20029, 20030, 20031, 20032, 20033, 20034, 20035, 20036, 20037, 20038);
 
 INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soalan, markah, skema_jawapan, sumber, tag) VALUES
 (1, 'Akidah', 'Soalan 2', 1, 'Nyatakan maksud Akidah Ahli Sunnah Wal Jamaah (ASWJ)', 2, 'Golongan majoriti umat Islam yang berpegang teguh kepada al-Quran dan al-Sunnah mengikut pemahaman Rasulullah SAW, para sahabat, tabi''in dan ulama salaf. (Isi + huraian)', ARRAY['SBP']::text[], 'SPM 2024'),
@@ -285,7 +285,264 @@ Cadangan isi:
 Cadangan isi:
 - Hubungan masyarakat renggang
 - Merosakkan imej penerima sedekah
-- Imej masyarakat Islam dipandang rendah', ARRAY['SEL']::text[], 'Percubaan 2026')
+- Imej masyarakat Islam dipandang rendah', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(20001, 'Al-Quran', 'Soalan 1 (a)', 1, 'Firman Allah SWT (Surah al-Mu''minun: 4-9).
+Ayat di atas menjelaskan tentang ciri-ciri mukmin yang berjaya.
+
+Nyatakan dua ciri tersebut selain memelihara solat.', 2, 'Mana-mana dua (2 isi × 1m):
+- Menunaikan zakat
+- Menjaga kehormatan / maruah / kemaluan diri
+- Menjaga amanah dan janji
+(Tambahan tulisan tangan dalam skema asal: beriman kepada Allah; khusyuk dalam solat; menjauhi perbuatan dan perkataan sia-sia)', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20002, 'Al-Quran', 'Soalan 1 (a)', 2, 'Jelaskan dua akibat salah laku seksual.', 2, 'Mana-mana dua (2 isi × 1m):
+- Menggugat keharmonian hidup bermasyarakat
+- Hilang kelayakan dalam mewarisi harta pusaka bagi anak yang tidak sah taraf
+- Menyebabkan keruntuhan institusi keluarga
+- Menyebabkan gangguan emosi dan mental
+- Terdedah kepada penyakit fizikal seperti AIDS dan sifilis
+- Mencetuskan pelbagai perbuatan jenayah
+Catatan: Jawapan hendaklah ditulis dalam ayat yang lengkap.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20003, 'Al-Quran', 'Soalan 1 (a)', 3, '[Rangsangan: kaligrafi "Hayya ''ala al-solah" — maksudnya: Marilah menunaikan solat.]
+
+Mengapakah terdapat segelintir remaja hari ini mengabaikan seruan di atas?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Lalai dengan hiburan / media
+- Mengutamakan dunia berbanding akhirat
+- Ilmu agama yang dipelajari tidak diamalkan
+- Terpengaruh dengan budaya Barat / gejala sosial
+- Tidak takut pada azab Allah SWT
+- Mempunyai iman yang lemah
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20004, 'Al-Quran', 'Soalan 1 (a)', 4, 'Huraikan bagaimana anda memastikan ibadat tersebut dilaksanakan dengan sempurna.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Berwuduk dengan sempurna
+- Menunaikan solat dalam waktu solat
+- Menyegerakan solat / tidak melengahkan solat
+- Menunaikan solat secara berjemaah
+- Mempelajari ilmu berkaitan solat dengan lebih mendalam
+- Menetapkan waktu solat bersesuaian dengan jadual kerja atau belajar
+- Menyempurnakan rukun dan syarat sah solat
+- Menunaikan solat dengan penuh khusyuk
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20005, 'Hadis', 'Soalan 1 (b)', 1, 'Sabda Rasulullah SAW (Muttafaq ''alaih), daripada Abu Hurairah r.a.: Jauhilah tujuh perkara yang membinasakan — syirik kepada Allah, sihir, membunuh jiwa yang diharamkan Allah kecuali dengan hak, memakan riba, memakan harta anak yatim, lari dari medan perang, dan menuduh zina wanita mukminah yang suci lagi lalai.
+Hadis di atas menjelaskan tujuh dosa besar yang wajib dihindari.
+
+Apakah maksud membunuh?', 2, 'Perbuatan menghilangkan nyawa seseorang. (1 isi × 2m)', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20006, 'Hadis', 'Soalan 1 (b)', 2, 'Senaraikan dua contoh perbuatan membunuh.', 2, 'Mana-mana dua (2 isi × 1m):
+- Menembak dengan senjata api
+- Menikam dengan pisau
+- Meletakkan racun dalam makanan
+- Menjerut leher dengan tali
+- Mencekik leher
+- Menekup muka dengan bantal / plastik
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20007, 'Hadis', 'Soalan 1 (b)', 3, 'Perbuatan qazaf menyebabkan perpecahan dalam kalangan keluarga dan masyarakat.
+
+Huraikan hujah anda untuk membenarkan pernyataan di atas.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Qazaf menjatuhkan maruah keluarga
+- Memutuskan hubungan kekeluargaan
+- Mendatangkan kebencian dalam keluarga
+- Masyarakat memandang serong kepada mangsa qazaf
+- Berlaku pergaduhan dalam keluarga / masyarakat
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20008, 'Al-Quran', 'Soalan 1 (c)', 1, 'Nyatakan jenis mad lazim bagi potongan ayat berikut:
+(i) وَلَا ٱلضَّآلِّينَ
+(ii) كٓهيعٓصٓ', 2, '(i) Mad Lazim Kalimi Musaqqal (1m)
+(ii) Mad Lazim Harfi Mukhaffaf (1m)', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20009, 'Akidah', 'Soalan 2 (a)', 1, 'Apakah maksud nama Allah SWT al-Muntaqim?', 2, 'Nama Allah SWT yang menunjukkan bahawa Allah SWT Maha Pembalas (1m) dengan menimpakan azab kepada orang yang melampaui batas (1m).', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20010, 'Akidah', 'Soalan 2 (a)', 2, 'Jelaskan bukti kefahaman nama Allah SWT al-Muntaqim.', 2, 'Mana-mana satu (1 isi × 2m):
+- Allah SWT memberikan pembalasan neraka terhadap orang yang menolak peringatan al-Quran
+- Allah SWT menimpakan azab dalam peristiwa al-Dukhan terhadap kaum Quraisy kerana menolak dakwah Rasulullah SAW
+- Allah SWT memberikan pembalasan terhadap golongan yang menentang agama-Nya setelah diutuskan rasul kepada mereka', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20011, 'Akidah', 'Soalan 2 (a)', 3, 'Seorang murid sering membuli rakannya di sekolah kerana merasakan dirinya kuat dan berpengaruh.
+
+Bagaimanakah penghayatan terhadap sifat al-Muntaqim dapat mengatasi masalah di atas?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Murid akan takut melakukan kezaliman terhadap orang lain
+- Murid akan lebih menjaga akhlak dan tingkah laku
+- Remaja akan lebih berhati-hati dalam perbuatan
+- Remaja terdorong untuk memperbanyakkan amalan soleh
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20012, 'Akidah', 'Soalan 2 (a)', 4, 'Ramalkan kemungkinan yang akan berlaku sekiranya masalah di atas tidak dibendung.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Hilang keyakinan diri
+- Mangsa akan mengalami tekanan emosi
+- Ramai murid akan berasa takut untuk hadir ke sekolah
+- Pembuli tidak merasa bersalah dengan perbuatan yang dilakukan
+- Berpotensi terlibat dengan jenayah yang lebih besar
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20013, 'Akidah', 'Soalan 2 (b)', 1, 'Nyatakan sejarah ringkas kemunculan aliran Khawarij.', 2, 'Kumpulan pengikut Saidina Ali r.a. yang berpaling tadah (1m) kerana tidak berpuas hati dengan keputusan Majlis Tahkim (1m).', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20014, 'Akidah', 'Soalan 2 (b)', 2, 'Jelaskan dua prinsip utama aliran Khawarij yang bertentangan dengan akidah Ahli Sunnah Wal Jamaah.', 2, 'Mana-mana dua (2 isi × 1m):
+- Jawatan khalifah atau imam hendaklah diserahkan pemilihannya kepada rakyat untuk memilih sesiapa sahaja kaum muslimin yang layak
+- Menyatakan Saidina Ali r.a. telah melakukan dosa besar serta kufur kerana bersetuju mengadakan Majlis Tahkim
+- Wajib keluar menentang pemimpin atau khalifah yang tidak adil
+- Beriktikad bahawa orang yang melakukan maksiat dikira berdosa besar dan kafir', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20015, 'Akidah', 'Soalan 2 (b)', 3, '[Rangsangan: poster "Awas!!! Fahaman Aliran Khawarij" — golongan Khawarij memahami agama secara keras tanpa mengambil kira hikmah, rahmat dan toleransi.]
+
+Mengapakah masih terdapat umat Islam yang terpengaruh dengan fahaman di atas?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Keimanan yang lemah dalam diri (1m) kerana kurang mendalami ilmu agama (1m)
+- Pengaruh rakan sebaya yang sesat (1m) kerana fanatik terhadap pengasas aliran sesat (1m)
+- Ingin mencuba perkara baru (1m) sehingga menyimpang daripada ajaran yang sebenar (1m)
+- Mudah percaya kepada fahaman baharu (1m) tanpa merujuk akidah yang benar (1m)
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20016, 'Akidah', 'Soalan 2 (b)', 4, 'Pada pendapat anda, adakah penguatkuasaan undang-undang sahaja sudah memadai untuk mengatasi fahaman di atas? Huraikan jawapan anda.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+Ya, melalui undang-undang dapat:
+- Memberi hukuman yang berat kepada individu / kumpulan yang menyebarkan fahaman yang salah
+- Mengawal penyebaran fahaman daripada berleluasa
+- Menimbulkan rasa takut dikenakan hukuman yang berat
+Tidak, selain daripada penguatkuasaan undang-undang:
+- Mengadakan kempen / forum / ceramah tentang kesedaran akidah
+- Peranan masyarakat memberi teguran dan nasihat
+- Penyebaran keburukan fahaman melalui media sosial
+- Pemerkasaan kurikulum pendidikan berkaitan ilmu akidah
+- Penerapan akidah Ahli Sunnah Wal Jamaah sejak kecil
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20017, 'Fiqah', 'Soalan 3 (a)', 1, 'Amalan mewakafkan harta merupakan amalan yang amat dituntut dalam Islam.
+
+Apakah maksud wakaf?', 2, 'Mewakafkan harta yang dapat diambil manfaatnya serta kekal fizikal (ainnya) (1m) untuk penggunaan yang baik serta bertujuan mendapat keredaan Allah (1m).', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20018, 'Fiqah', 'Soalan 3 (a)', 2, 'Nyatakan dua contoh wakaf.', 2, 'Mana-mana dua (2 isi × 1m):
+- Mewakafkan rumah untuk pusat penjagaan anak yatim
+- Mewakafkan bangunan untuk dijadikan pusat pendidikan
+- Mewakafkan tanah untuk dibina masjid
+- Mewakafkan telaga untuk digunakan air bersih
+- Mewakafkan kenderaan kepada masjid untuk kegunaan urusan kebajikan
+- Mewakafkan wang tunai bagi tujuan pembelian van jenazah
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20019, 'Fiqah', 'Soalan 3 (a)', 3, '[Rangsangan: kartun dua lelaki berbual — "Wakaf sudah mula diamalkan secara meluas di negara kita." "Betul, saya setuju pendapat awak."]
+
+Pada pendapat anda, bagaimanakah amalan di atas dapat meningkatkan ekonomi umat Islam di negara kita?', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Tanah wakaf dapat dimajukan sebagai pusat perniagaan
+- Dapat menambah baik infrastruktur kebajikan / perniagaan
+- Dapat membantu golongan miskin dengan menyediakan medan niaga / kenderaan
+- Dapat mengurangkan kos sara hidup golongan miskin
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20020, 'Fiqah', 'Soalan 3 (b)', 1, 'Jelaskan dua tanggungjawab isteri.', 2, 'Mana-mana dua (2 isi × 1m):
+- Mentaati perintah suami selagi tidak bertentangan dengan hukum syarak
+- Menjaga kehormatan diri dengan berpakaian menutup aurat, memelihara pandangan dan menjaga batas pergaulan ketika berada di luar rumah
+- Menjaga kemuliaan, maruah dan harta suami
+- Melakukan perkara yang menyenangkan hati suami
+- Mendapat keizinan suami sebelum keluar rumah (tambahan tulisan tangan dalam skema asal)
+Catatan: Jawapan hendaklah ditulis dalam ayat yang lengkap.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20021, 'Fiqah', 'Soalan 3 (b)', 2, 'Antara tanggungjawab suami dan isteri terhadap anak-anak ialah menerapkan pendidikan akidah Islam yang betul sejak daripada kecil.
+
+Jelaskan kepentingan pendidikan di atas ke arah pembentukan generasi unggul.', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan jawapan (isi 1m + huraian 1m):
+- Mampu menjadi pedoman yang teguh sepanjang hayat agar mempunyai akidah yang jitu
+- Mengelakkan daripada mudah terpengaruh dengan fahaman dan ideologi yang bertentangan dengan Islam agar dapat berpegang dengan akidah yang benar
+- Memelihara iman seorang muslim agar sentiasa yakin dengan ketentuan Allah SWT
+- Menjadi asas penerimaan ibadah kerana bertepatan dengan al-Quran dan al-Sunnah sebagai rujukan
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20022, 'Fiqah', 'Soalan 3 (b)', 3, 'Huraikan kesan kepada institusi keluarga sekiranya tanggungjawab di atas diabaikan.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Gaya hidup keluarga berkiblatkan Barat dan hedonisme
+- Ahli keluarga kurang rasa tanggungjawab dan kasih sayang
+- Hilang panduan dalam menentukan hala tuju hidup keluarga
+- Berlaku perpecahan dalam keluarga kerana berlainan fahaman
+- Syariat Islam tidak dapat diamalkan sebaiknya dalam keluarga
+- Sesebuah keluarga akan dipandang serong oleh masyarakat
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20023, 'Fiqah', 'Soalan 3 (c)', 1, 'Jelaskan hukum dan alasan bagi situasi berikut:
+(a) Suami melafazkan talak kepada isterinya yang dalam keadaan haid.', 2, 'Terima mana-mana:
+- Hukum: Haram. Alasan: menceraikan isteri ketika dalam haid adalah dilarang.
+- Hukum: Sah. Alasan: talak adalah hak suami / talak dilafazkan kepada isterinya yang sah.
+Pemarkahan: hukum betul + alasan betul = 2m; hukum betul + alasan salah = 1m; hukum salah = 0m.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20024, 'Fiqah', 'Soalan 3 (c)', 2, 'Jelaskan hukum dan alasan bagi situasi berikut:
+(b) Abu kembali rujuk bekas isterinya yang diceraikan dengan talak tiga.', 2, 'Hukum: Tidak sah. Alasan: perceraian dengan talak tiga tiada rujuk.
+Pemarkahan: hukum betul + alasan betul = 2m; hukum betul + alasan salah = 1m; hukum salah = 0m.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20025, 'Sirah', 'Soalan 4 (a)', 1, 'Nyatakan dua pusat pemerintahan kerajaan Uthmaniyah.', 2, 'Mana-mana dua (2 isi × 1m):
+- Sogut
+- Bursa
+- Edirne
+- Istanbul', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20026, 'Sirah', 'Soalan 4 (a)', 2, 'Terangkan dua faktor kegemilangan kerajaan Uthmaniyah daripada aspek sosial.', 4, 'Mana-mana dua (2 × [isi 1m + huraian 1m]):
+- Penjagaan kebajikan rakyat (1m) menerusi bantuan kepada golongan yang memerlukan (1m)
+- Mewujudkan suasana harmoni (1m) dalam masyarakat (1m)
+- Sistem wakaf yang sistematik (1m) meliputi aspek keperluan asas, pendidikan dan kesihatan (1m)', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20027, 'Sirah', 'Soalan 4 (a)', 3, '[Jadual: Pemerintah terkenal kerajaan Uthmaniyah — Uthman bin Ertughrul; Murad I bin Urkhan; Muhammad al-Fateh bin Murad II; Sulaiman al-Qanuni bin Salim I.]
+
+Pada pandangan anda, apakah cabaran untuk membina generasi masa kini yang hebat sebagaimana tokoh di atas? Huraikan.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Penggunaan gajet yang melampaui batas
+- Lebih gemar memberi tumpuan kepada aktiviti hiburan yang melalaikan
+- Kurang memberi tumpuan terhadap membina potensi diri
+- Kurang cakna terhadap kehebatan tokoh Islam terdahulu
+- Pengaruh budaya Barat yang negatif / hedonisme
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20028, 'Sirah', 'Soalan 4 (b)', 1, 'Kerajaan Khulafa al-Rasyidin ialah contoh kepimpinan terbaik sepanjang zaman.
+
+Senaraikan dua ciri kepimpinan Saidina Ali bin Abi Talib.', 2, 'Mana-mana dua (2 isi × 1m):
+- Tegas
+- Berpandangan jauh
+- Berilmu
+- Berani', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20029, 'Sirah', 'Soalan 4 (b)', 2, 'Jelaskan dua pencapaian pemerintahan kerajaan Khulafa al-Rasyidin dalam bidang agama.', 4, '2 isi × 2m:
+- Khalifah Abu Bakar al-Siddiq berjaya memerangi golongan murtad, nabi palsu dan golongan yang enggan membayar zakat
+- Khalifah Umar bin al-Khattab menyebarkan dakwah Islam sehingga tersebar di wilayah Mesir, Parsi dan Rom', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20030, 'Sirah', 'Soalan 4 (b)', 3, 'Usaha mengumpul, menulis dan membukukan al-Quran giat dijalankan pada zaman pemerintahan Khulafa al-Rasyidin membuktikan keprihatinan khalifah dalam memelihara al-Quran.
+
+Bagaimanakah usaha Khulafa al-Rasyidin di atas mampu diteruskan oleh generasi hari ini?', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Mencetak naskhah al-Quran secara konsisten bagi menggantikan naskhah al-Quran yang lama
+- Mempelajari / menghafaz / mengamalkan ajaran al-Quran dalam kehidupan seharian
+- Menyebarkan ilmu al-Quran melalui pelbagai medium seperti kelas pengajian, media sosial dan program dakwah
+- Mengadakan kempen mencintai al-Quran / program Quran Hour
+- Memberi pengiktirafan kepada institusi tahfiz
+- Memberi pendidikan al-Quran kepada anak sejak kecil
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20031, 'Akhlak', 'Soalan 5 (a)', 1, 'Sifat tawaduk dapat menzahirkan kesucian jiwa.
+
+Nyatakan maksud tawaduk.', 2, 'Sikap kerendahan hati (1m) kepada Allah SWT dan sesama manusia (1m).', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20032, 'Akhlak', 'Soalan 5 (a)', 2, 'Jelaskan dua sifat tawaduk Rasulullah SAW ketika makan dan minum.', 2, 'Mana-mana dua (2 isi × 1m):
+- Baginda tidak pernah mencela makanan yang disediakan
+- Jika menyukai makanan tersebut, baginda akan memakannya
+- Baginda akan meninggalkan makanan yang baginda tidak suka
+- Baginda tidak menzahirkan perasaan, sebaliknya berdiam', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20033, 'Akhlak', 'Soalan 5 (a)', 3, 'Kejayaan yang dikecapi oleh seseorang boleh menyebabkan seseorang itu menjadi lupa diri dan sombong.
+
+Apakah kesan sekiranya situasi di atas wujud pada individu muslim?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Dipandang rendah dan dibenci oleh masyarakat
+- Menjadi lalai serta lupa untuk bersyukur
+- Menjejaskan hubungan silaturahim
+- Sukar menerima nasihat dan teguran daripada orang lain
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20034, 'Akhlak', 'Soalan 5 (a)', 4, 'Bagaimanakah sifat tawaduk dapat mengelakkan situasi di atas? Huraikan.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Menyedari bahawa kejayaan yang diperoleh adalah kurniaan Allah SWT
+- Sentiasa bersyukur atas kejayaan
+- Sentiasa muhasabah kelebihan dan kelemahan diri
+- Menjadikan kejayaan sebagai pembakar semangat untuk membantu orang lain
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20035, 'Akhlak', 'Soalan 5 (b)', 1, 'Jelaskan dua adab terhadap orang sakit daripada aspek fizikal.', 2, '2 isi × 1m:
+- Memastikan tempat dan tubuh badan pesakit sentiasa bersih
+- Menyediakan keperluan dan kemudahan asas untuk pesakit', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20036, 'Akhlak', 'Soalan 5 (b)', 2, 'Terangkan hikmah beradab terhadap orang sakit.', 2, 'Mana-mana satu (isi 1m + huraian 1m = 2m):
+- Menggembirakan pesakit (1m) agar hatinya tenang dalam menempuh ujian Allah SWT (1m)
+- Mengeratkan ukhuwah sesama anggota masyarakat (1m) agar hidup perpaduan dapat dibentuk (1m)
+- Melahirkan keinsafan (1m) kerana diberikan nikmat kesihatan setelah melihat penderitaan pesakit (1m)', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20037, 'Akhlak', 'Soalan 5 (b)', 3, '[Rangsangan: gambar di wad hospital — Individu A (pelawat) mengajak Individu B (pesakit) berswafoto: "Jom kita selfie, saya nak masuk dalam Instagram", manakala B menutup muka: "Eh, malu la saya... janganlah."]
+
+Berdasarkan gambar di atas, kaitkan tindakan individu A dengan adab terhadap orang sakit.', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan jawapan (isi 1m + huraian 1m):
+- Individu A tidak menjaga ketenteraman emosi pesakit kerana tindakannya boleh menyebabkan pesakit berasa tertekan dan terganggu
+- Individu A tidak menjaga perasaan pesakit kerana memaksa rakannya berswafoto walaupun pesakit berasa malu dan tidak selesa
+- Individu A tidak menghormati privasi pesakit kerana memuat naik gambar rakannya ke media sosial tanpa keizinan
+- Individu A tidak menunjukkan sikap prihatin terhadap pesakit kerana lebih mementingkan perkongsian di media sosial berbanding keselesaan rakannya yang sedang sakit
+- Individu A tidak menjaga adab ketika menziarahi orang sakit kerana tindakannya boleh mengaibkan pesakit apabila gambar tersebut dilihat oleh orang ramai
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026'),
+(20038, 'Akhlak', 'Soalan 5 (b)', 4, 'Sebagai seorang rakan, apakah yang perlu anda lakukan agar tindakan individu A memenuhi tuntutan adab terhadap orang sakit? Huraikan.', 4, 'Rubrik 4m: 1m satu isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/akibat/kesan/dalil; 4m huraian lengkap dengan kesimpulan/olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Menasihatinya supaya meminta keizinan pesakit terlebih dahulu sebelum mengambil atau memuat naik gambar di media sosial
+- Menegurnya agar menjaga perasaan pesakit dan tidak memaksa pesakit berswafoto ketika berada dalam keadaan tidak selesa
+- Menerangkan kepadanya bahawa menjaga privasi pesakit merupakan salah satu tuntutan adab terhadap orang sakit dalam Islam
+- Mengajaknya supaya memberikan kata-kata semangat dan doa kepada pesakit berbanding menjadikan lawatan tersebut sebagai kandungan media sosial
+- Mengingatkannya agar menziarahi pesakit dengan ikhlas
+- Menyedarkannya agar mengelakkan perbuatan yang boleh mengganggu emosi dan ketenteraman pesakit
+Catatan: Mana-mana jawapan yang munasabah diterima.', ARRAY['SBP']::text[], 'Percubaan 2026')
 ON CONFLICT (no_asal) DO UPDATE SET
   bidang = EXCLUDED.bidang, bahagian = EXCLUDED.bahagian, no_soalan = EXCLUDED.no_soalan,
   soalan = EXCLUDED.soalan, markah = EXCLUDED.markah, skema_jawapan = EXCLUDED.skema_jawapan,
