@@ -67,10 +67,14 @@
       -moz-osx-font-smoothing: grayscale;
     }
     .teks-soalan { unicode-bidi: plaintext; line-height: 2.1; }
+    /* Kandungan Rumi (soalan & skema) — kiri ke kanan, fon Latin */
+    .rumi { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; line-height: 1.7; text-align: left; }
     @media print {
       .kad { box-shadow: none; break-inside: avoid; }
     }
   </style>
+
+  <script type="module" src="js/app.js"></script>
 </head>
 
 <body class="min-h-dvh bg-slate-50/80 font-sans text-slate-900 antialiased" x-data="app" x-cloak>
@@ -84,10 +88,11 @@
         <h1 class="text-[17px] leading-tight font-bold tracking-tight text-slate-900">JanaPAI</h1>
         <p class="truncate text-[11px] font-medium tracking-wide text-emerald-800">ڤنديديقن إسلام KSSM · تيڠکتن 1–5</p>
       </div>
+      <button x-show="dalam" class="btn-kedua px-3 py-1.5" @click="keluarPanitia()">کلوار</button>
     </div>
 
-    <nav class="mx-auto flex max-w-6xl gap-1.5 px-3 pb-2.5 sm:px-5" aria-label="مينو اوتام">
-      <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'}]" :key="t.id">
+    <nav x-show="dalam" class="mx-auto flex max-w-6xl gap-1.5 px-3 pb-2.5 sm:px-5" aria-label="مينو اوتام">
+      <template x-for="t in [{id:'soalan',nama:'جان سوالن'},{id:'rpt',nama:'جان RPT'},{id:'bank',nama:'بڠک سوالن'},{id:'spm',nama:'SPM'}]" :key="t.id">
         <button class="flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 ease-out sm:flex-none sm:px-5"
                 :class="tab === t.id
                   ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-900/15 ring-1 ring-emerald-600/60'
@@ -102,12 +107,38 @@
     اندا دلوار تالين. ڤنجاناءن AI دان ڤڽيمڤنن ممرلوکن سمبوڠن اينترنيت.
   </div>
 
-  <main class="mx-auto max-w-6xl px-4 py-6 pb-24">
+  <main class="mx-auto max-w-6xl px-4 py-6 pb-10">
+
+    <!-- ======================================================================= -->
+    <!-- Kata laluan panitia                                                   -->
+    <!-- ======================================================================= -->
+    <section x-show="!dalam" class="mx-auto mt-8 max-w-sm">
+      <div class="kad">
+        <div class="mb-4 flex items-center gap-2.5">
+          <div class="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/70">
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <h2 class="text-lg font-bold tracking-tight text-slate-900">اکسيس ڤانيتيا ڤنديديقن إسلام</h2>
+        </div>
+        <p class="text-sm text-slate-600">ماسوقکن کات لالوان ڤانيتيا اونتوق مڠݢوناکن JanaPAI.</p>
+        <form class="mt-5 space-y-4" @submit.prevent="hantarKataLaluan()">
+          <div>
+            <label class="label" for="kata-laluan">کات لالوان</label>
+            <input id="kata-laluan" type="password" class="input" dir="ltr" x-model="kl.nilai" required autocomplete="current-password">
+          </div>
+          <p x-show="kl.ralat" class="rounded-xl bg-red-50 p-3.5 text-sm text-red-700 ring-1 ring-red-200/70" dir="auto" x-text="kl.ralat"></p>
+          <button class="btn-utama w-full py-3" :disabled="kl.loading || !online">
+            <span x-show="kl.loading" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span>ماسوق</span>
+          </button>
+        </form>
+      </div>
+    </section>
 
     <!-- ======================================================================= -->
     <!-- TAB: Jana Soalan                                                      -->
     <!-- ======================================================================= -->
-    <section x-show="tab === 'soalan'" class="space-y-5">
+    <section x-show="dalam && tab === 'soalan'" class="space-y-5">
 
       <div class="kad print:hidden">
         <div class="mb-5 flex items-center gap-2.5">
@@ -141,6 +172,16 @@
               <summary class="cursor-pointer font-semibold tracking-wide">ليهت ستندرد کاندوڠن &amp; ڤمبلاجرن</summary>
               <p class="teks-soalan mt-2.5"><b>SK:</b> <span x-text="dskpDipilih?.standard_kandungan"></span></p>
               <p class="teks-soalan mt-1.5 whitespace-pre-line"><b>SP:</b> <span x-text="dskpDipilih?.standard_pembelajaran"></span></p>
+              <template x-if="dskpDipilih?.standard_prestasi">
+                <div class="mt-2.5">
+                  <b>ستندرد ڤرستاسي:</b>
+                  <ol class="mt-1.5 space-y-1.5">
+                    <template x-for="(tp, i) in dskpDipilih.standard_prestasi" :key="i">
+                      <li class="teks-soalan flex gap-2"><span class="lencana-emerald h-fit shrink-0" x-text="'TP' + (i + 1)"></span><span x-text="tp"></span></li>
+                    </template>
+                  </ol>
+                </div>
+              </template>
             </details>
           </div>
 
@@ -190,11 +231,11 @@
           </div>
 
           <p class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200/70 print:hidden">
-            ⚠️ سوالن دجان اوليه AI. سيلا سمق کتڤتن فکتا، اية القرءان dan حديث سبلوم دݢوناکن.
+            ⚠️ سوالن دجان اوليه AI. سيلا سمق کتڤتن فکتا، اية القرءان دان حديث سبلوم دݢوناکن.
           </p>
 
           <template x-for="(q, i) in sq.hasil.soalan" :key="i">
-            <article class="kad" :class="!q._pilih && 'opacity-60 print:hidden'">
+            <article class="kad" :class="[!q._pilih && 'opacity-60 print:hidden', arahTeks(q.soalan) === 'ltr' && 'rumi']" :dir="arahTeks(q.soalan)">
               <div class="flex items-start gap-3.5">
                 <input type="checkbox" class="mt-1 size-5 shrink-0 rounded-md accent-emerald-700 transition duration-150 print:hidden" x-model="q._pilih" :aria-label="`ڤيليه سوالن ${i + 1}`">
                 <div class="min-w-0 flex-1">
@@ -202,6 +243,7 @@
                     <span class="font-bold text-[15px] text-slate-900" x-text="`سوالن ${i + 1}`"></span>
                     <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="lb(q.aras_kognitif)"></span>
                     <span class="lencana-slate" x-text="`${q.markah} مارکه`"></span>
+                    <span x-show="q.tahap_penguasaan" class="lencana-emerald" x-text="'TP' + q.tahap_penguasaan"></span>
                     <button class="ms-auto text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline print:hidden transition-colors duration-150" @click="q._edit = !q._edit"
                             x-text="q._edit ? 'سياڤ' : 'سونتيڠ'"></button>
                   </div>
@@ -219,7 +261,7 @@
                       </ol>
                     </template>
                     <div class="mt-3 rounded-xl bg-slate-50/80 p-3.5 text-sm ring-1 ring-slate-200/70" :class="!cetakSkema && 'print:hidden'">
-                      <p class="font-semibold text-slate-700">سکيما جواڤن</p>
+                      <p class="font-semibold text-slate-700" x-text="arahTeks(q.soalan) === 'ltr' ? 'Skema jawapan' : 'سکيما جواڤن'"></p>
                       <p class="teks-soalan mt-1.5 whitespace-pre-line" dir="auto" x-text="q.skema_jawapan"></p>
                       <p x-show="q.elemen_kbat" class="mt-2 text-xs text-slate-500" x-text="'ايليمن KBAT: ' + q.elemen_kbat"></p>
                     </div>
@@ -254,7 +296,7 @@
     <!-- ======================================================================= -->
     <!-- TAB: Jana RPT                                                         -->
     <!-- ======================================================================= -->
-    <section x-show="tab === 'rpt'" class="space-y-5">
+    <section x-show="dalam && tab === 'rpt'" class="space-y-5">
       <div class="kad print:hidden">
         <div class="mb-5 flex items-center gap-2.5">
           <div class="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/70">
@@ -271,8 +313,8 @@
           <div>
             <label class="label" for="rp-kumpulan">کومڤولن تقويم</label>
             <select id="rp-kumpulan" class="input" x-model="rp.kumpulan" @change="muatDataRpt()">
-              <option value="A">A (جوهر، قدح، کلنتن، ترڠݢانو)</option>
-              <option value="B">B (نݢري لاءين)</option>
+              <option value="A">A (قدح، کلنتن، ترڠݢانو)</option>
+              <option value="B">B (نݢري لاءين، ترماسوق جوهر)</option>
             </select>
           </div>
           <div>
@@ -398,7 +440,7 @@
     <!-- ======================================================================= -->
     <!-- TAB: Bank Soalan                                                      -->
     <!-- ======================================================================= -->
-    <section x-show="tab === 'bank'" class="space-y-4">
+    <section x-show="dalam && tab === 'bank'" class="space-y-4">
       <div class="kad print:hidden">
         <div class="mb-5 flex items-center gap-2.5">
           <div class="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/70">
@@ -434,7 +476,7 @@
 
       <div class="grid gap-4 sm:grid-cols-2">
         <template x-for="(q, i) in bk.items" :key="q.id">
-          <article class="kad">
+          <article class="kad" :class="arahTeks(q.soalan) === 'ltr' && 'rumi'" :dir="arahTeks(q.soalan)">
             <div class="flex flex-wrap items-center gap-2 text-xs">
               <b class="text-sm font-bold text-slate-900" x-text="`${bk.offset + i + 1}.`"></b>
               <span class="lencana" :class="warnaAras(q.aras_kognitif)" x-text="lb(q.aras_kognitif)"></span>
@@ -450,7 +492,7 @@
               </ol>
             </template>
             <details class="mt-3.5 rounded-xl bg-slate-50/80 p-3.5 text-sm ring-1 ring-slate-200/70" :open="cetakSkema" :class="!cetakSkema && 'print:hidden'">
-              <summary class="cursor-pointer font-semibold text-slate-700 print:list-none">سکيما جواڤن</summary>
+              <summary class="cursor-pointer font-semibold text-slate-700 print:list-none" x-text="arahTeks(q.soalan) === 'ltr' ? 'Skema jawapan' : 'سکيما جواڤن'"></summary>
               <p class="teks-soalan mt-1.5 whitespace-pre-line" dir="auto" x-text="q.skema_jawapan"></p>
             </details>
             <div class="mt-3.5 flex gap-2 print:hidden">
@@ -468,7 +510,196 @@
       </div>
     </section>
 
+    <!-- ===================================================================== -->
+    <!-- TAB: SPM — Jana gaya SPM + Soalan Percubaan                           -->
+    <!-- ===================================================================== -->
+    <section x-show="dalam && tab === 'spm'" class="space-y-4">
+      <div class="flex gap-2 print:hidden">
+        <button class="flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold ring-1 transition-all duration-200"
+                :class="sp.mod === 'jana' ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-900/15 ring-emerald-600/60' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'"
+                @click="tukarModSpm('jana')">جان سوالن ݢاي SPM</button>
+        <button class="flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold ring-1 transition-all duration-200"
+                :class="sp.mod === 'percubaan' ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-900/15 ring-emerald-600/60' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'"
+                @click="tukarModSpm('percubaan')">سوالن ڤرچوباءن</button>
+      </div>
+
+      <!-- ---------------- Jana gaya SPM ---------------- -->
+      <div x-show="sp.mod === 'jana'" class="space-y-4">
+        <div class="kad space-y-4 print:hidden">
+          <div>
+            <h2 class="text-lg font-bold tracking-tight text-slate-900">جان سوالن ݢاي SPM (کرتس 1 · 1223/1)</h2>
+            <p class="text-sm text-slate-600">ايکوت فورمت لمبݢ ڤڤريقساٴن: 5 سوالن × 20 مارکه، بهاݢين (a)(b)(c)، نيسبه اراس R:S:T = 5:3:2، چاکوڤن DSKP تيڠکتن 4 دان 5.</p>
+          </div>
+          <div>
+            <div>
+              <label class="label" for="sp-nombor">سوالن</label>
+              <select id="sp-nombor" class="input" x-model.number="sp.nombor" @change="pilihNomborSpm(sp.nombor)">
+                <option value="0">کرتس ڤنوه (سوالن 1–5، 100 مارکه)</option>
+                <template x-for="n in [1, 2, 3, 4, 5]" :key="n">
+                  <option :value="n" x-text="`سوالن ${n} — ${SOALAN_SPM[n].nama}`"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <div x-show="sp.nombor">
+            <span class="label">تاجوق فوکوس (ڤيليهن، مکسيموم 3) — کوسوڠ = AI ڤيليه سنديري</span>
+            <div class="max-h-56 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2">
+              <p x-show="!tajukSpm.length" class="text-sm text-slate-500">ممواتکن DSKP…</p>
+              <template x-for="t in tajukSpm" :key="t.id">
+                <label class="flex cursor-pointer items-start gap-2 rounded p-1 text-sm hover:bg-slate-50">
+                  <input type="checkbox" class="mt-2" :checked="sp.fokus.includes(t.id)" @change="togolFokus(t.id); $el.checked = sp.fokus.includes(t.id)">
+                  <span><span class="lencana me-1 bg-slate-100 text-slate-700" x-text="'ت' + t.tingkatan"></span><span x-text="t.tajuk"></span></span>
+                </label>
+              </template>
+            </div>
+          </div>
+
+          <button class="btn-utama w-full sm:w-auto" @click="janaKertasSpm()" :disabled="sedangJanaSpm || !online">
+            <span x-show="sedangJanaSpm" class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span x-text="sedangJanaSpm ? 'سدڠ منجان…' : (sp.nombor ? 'جان سوالن ' + sp.nombor : 'جان کرتس ڤنوه')"></span>
+          </button>
+        </div>
+
+        <template x-if="sp.hasil.length">
+          <div class="space-y-4">
+            <div class="kad flex flex-wrap items-center gap-3 text-sm print:hidden">
+              <span>جومله: <b x-text="ringkasanSpm.jumlah"></b> مارکه</span>
+              <span class="lencana bg-sky-100 text-sky-800" x-text="`R ${ringkasanSpm.R}`"></span>
+              <span class="lencana bg-amber-100 text-amber-800" x-text="`S ${ringkasanSpm.S}`"></span>
+              <span class="lencana bg-orange-100 text-orange-800" x-text="`T ${ringkasanSpm.T}`"></span>
+              <span class="text-xs text-slate-500">(ساسرن 5:3:2)</span>
+              <div class="ms-auto flex gap-2">
+                <button class="btn-kedua py-1.5" @click="cetak(false)" :disabled="sedangJanaSpm">چيتق</button>
+                <button class="btn-kedua py-1.5" @click="cetak(true)" :disabled="sedangJanaSpm">+ سکيما</button>
+              </div>
+            </div>
+
+            <p x-show="sp.hasil.some((h) => h.nombor === 1 && h.status === 'ok')" class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200/70 print:hidden">
+              سوالن 1: AI تيدق منوليس تيکس عرب. سالين تيکس اية/حديث درڤد مصحف اتاو بوکو تيکس کدالم کوروڠن [ ] سبلوم مڠچيتق.
+            </p>
+
+            <template x-for="(h, i) in sp.hasil" :key="h.nombor">
+              <article class="kad rumi" dir="ltr" lang="ms">
+                <div x-show="h.status === 'loading'" class="flex items-center gap-2 text-sm text-slate-500">
+                  <span class="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-700"></span>
+                  <span x-text="`Menjana Soalan ${h.nombor}…`"></span>
+                </div>
+                <div x-show="h.status === 'ralat'" class="flex flex-wrap items-center gap-2 text-sm print:hidden">
+                  <span class="text-red-700" dir="auto" x-text="`${h.nombor}. ${h.ralat}`"></span>
+                  <button class="btn-kedua py-1.5" @click="janaSatuSpm(i)" :disabled="!online">چوبا لاݢي</button>
+                </div>
+                <template x-if="h.status === 'ok'">
+                  <div>
+                    <div class="flex items-start gap-2">
+                      <b class="text-lg" x-text="h.soalan.nombor + '.'"></b>
+                      <p x-show="h.soalan.nota" class="flex-1 rounded bg-red-50 px-2 text-sm text-red-700 print:hidden" x-text="h.soalan.nota"></p>
+                    </div>
+                    <template x-for="b in h.soalan.bahagian" :key="b.label">
+                      <div class="mt-3 flex gap-2">
+                        <b x-text="`(${b.label})`"></b>
+                        <div class="min-w-0 flex-1">
+                          <p x-show="b.rangsangan" class="teks-soalan whitespace-pre-line" x-text="b.rangsangan"></p>
+                          <p x-show="b.tajuk" class="text-xs text-slate-500 print:hidden" dir="rtl" x-text="'DSKP: ' + b.tajuk"></p>
+                          <template x-for="it in b.item" :key="it.label">
+                            <div class="mt-2">
+                              <div class="flex gap-2">
+                                <span x-text="`(${it.label})`"></span>
+                                <p class="teks-soalan flex-1 whitespace-pre-line" x-text="it.soalan"></p>
+                                <span class="lencana h-fit shrink-0 print:hidden"
+                                      :class="{ R: 'bg-sky-100 text-sky-800', S: 'bg-amber-100 text-amber-800', T: 'bg-orange-100 text-orange-800' }[it.aras]"
+                                      x-text="it.aras"></span>
+                              </div>
+                              <p class="text-end text-sm font-semibold" x-text="`[${it.markah} markah]`"></p>
+                              <details class="mt-1.5 rounded-xl bg-slate-50/80 p-3.5 text-sm ring-1 ring-slate-200/70" :open="cetakSkema" :class="!cetakSkema && 'print:hidden'">
+                                <summary class="cursor-pointer font-semibold text-slate-700 print:list-none">Skema jawapan</summary>
+                                <p class="teks-soalan mt-1 whitespace-pre-line" x-text="it.skema"></p>
+                              </details>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="mt-3 flex gap-2 print:hidden">
+                      <button class="btn-kedua py-1.5" @click="salinSpm(h)">سالين</button>
+                      <button class="btn-kedua py-1.5" @click="janaSatuSpm(i)" :disabled="!online || sedangJanaSpm">جان سمولا</button>
+                    </div>
+                  </div>
+                </template>
+              </article>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- ---------------- Soalan Percubaan (Rumi) ---------------- -->
+      <div x-show="sp.mod === 'percubaan'" class="space-y-4">
+      <div class="kad print:hidden">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <select class="input" x-model="pc.bidang" aria-label="تاڤيس بيدڠ">
+            <option value="">سموا بيدڠ</option>
+            <template x-for="b in pilihanPc('bidang')" :key="b"><option :value="b" x-text="lb(b)"></option></template>
+          </select>
+          <select class="input" x-model="pc.bahagian" aria-label="تاڤيس بهاݢين">
+            <option value="">سموا بهاݢين</option>
+            <template x-for="b in pilihanPc('bahagian')" :key="b"><option :value="b" x-text="b"></option></template>
+          </select>
+          <select class="input" x-model="pc.sumber" aria-label="تاڤيس نݢري اتاو سومبر">
+            <option value="">سموا نݢري / سومبر</option>
+            <template x-for="k in pilihanPc('sumber')" :key="k"><option :value="k" x-text="namaSumber(k)"></option></template>
+          </select>
+          <select class="input" x-model="pc.tag" aria-label="تاڤيس تاݢ">
+            <option value="">سموا تاݢ</option>
+            <template x-for="t in pilihanPc('tag')" :key="t"><option :value="t" x-text="t"></option></template>
+          </select>
+          <input type="search" class="input rumi col-span-2" dir="ltr" x-model.debounce.250ms="pc.cari"
+                 placeholder="Cari: cth. Uthmaniyah, riak, faraid" aria-label="چاري">
+          <div class="col-span-2 flex gap-2">
+            <button class="btn-kedua flex-1" @click="cetak(false)" :disabled="!senaraiPc.length">چيتق</button>
+            <button class="btn-kedua flex-1" @click="cetak(true)" :disabled="!senaraiPc.length">+ سکيما</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-600 print:hidden">
+        <span x-show="pc.loading">ممواتکن…</span>
+        <span x-show="!pc.loading">
+          <b x-text="senaraiPc.length"></b> درڤد <b x-text="pc.semua.length"></b> سوالن ·
+          <b x-text="jumlahMarkahPc"></b> مارکه
+        </span>
+      </p>
+
+      <template x-for="(q, i) in senaraiPc" :key="q.id">
+        <article class="kad rumi" dir="ltr" lang="ms">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <b class="text-sm" x-text="`${i + 1}.`"></b>
+            <span class="lencana bg-emerald-100 text-emerald-800" x-text="q.bidang"></span>
+            <span class="lencana bg-slate-100 text-slate-700" x-text="q.bahagian"></span>
+            <span x-show="q.markah" class="lencana bg-amber-100 text-amber-800" x-text="`${q.markah} markah`"></span>
+            <span x-show="q.tag" class="lencana bg-sky-100 text-sky-800" x-text="q.tag"></span>
+            <span class="text-slate-500" x-text="q.sumber.map(namaSumber).join(', ')"></span>
+          </div>
+          <p class="mt-2 whitespace-pre-line" x-text="q.soalan"></p>
+          <details class="mt-3 rounded-xl bg-slate-50/80 p-3.5 text-sm ring-1 ring-slate-200/70" :open="cetakSkema" :class="!cetakSkema && 'print:hidden'">
+            <summary class="cursor-pointer font-semibold text-slate-700 print:list-none">Skema jawapan</summary>
+            <p class="mt-1 whitespace-pre-line" x-text="q.skema_jawapan.replaceAll(' / ', '\n')"></p>
+          </details>
+          <div class="mt-3 flex gap-2 print:hidden">
+            <button class="btn-kedua py-1.5" @click="salinPc(q)">سالين</button>
+          </div>
+        </article>
+      </template>
+
+      <p x-show="pc.dimuat && !senaraiPc.length" class="kad text-center text-sm text-slate-500">تياد سوالن يڠ سڤادن دڠن تاڤيسن.</p>
+      </div>
+    </section>
+
   </main>
+
+  <!-- Kredit -->
+  <footer class="border-t border-slate-200/70 px-4 pt-5 pb-24 text-center text-xs text-slate-500 print:hidden">
+    دبڠونکن اوليه اوستاذ محمد أشرف بن قمر الزمان · ۏرسي 1.0
+  </footer>
 
   <!-- Toast -->
   <div x-show="toast" x-transition.opacity role="status" aria-live="polite"
