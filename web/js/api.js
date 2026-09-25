@@ -43,9 +43,9 @@ export function simpanRpt({ tahun, tingkatan, dariMinggu = 1, minggu }) {
 /** Tukar satu soalan hasil AI kepada baris `koleksi_soalan`. */
 export function toKoleksiRow(soalan, konteks) {
   const objektif = soalan.jenis_soalan === 'Objektif';
-  // Jika guru menukar jawapan betul semasa menyunting, selaraskan baris "جواڤن: X" dalam skema.
+  // Jika guru menukar jawapan betul semasa menyunting, selaraskan baris "Jawapan: X" dalam skema.
   const skema = objektif
-    ? soalan.skema_jawapan.replace(/^(جواڤن|Jawapan):\s*[A-D]/, `جواڤن: ${soalan.jawapan_betul}`)
+    ? soalan.skema_jawapan.replace(/^(جواڤن|Jawapan):\s*[A-D]/, `Jawapan: ${soalan.jawapan_betul}`)
     : soalan.skema_jawapan;
   return {
     dskp_id: konteks.dskp_id ?? null,
@@ -94,7 +94,7 @@ export const janaRpt = (params) => callFunction('/jana-rpt', params);
 
 /**
  * Satu soalan Kertas 1 SPM (20 markah, bahagian a-c). Kertas penuh = 5 panggilan serentak.
- * @param {{ nombor: 1|2|3|4|5, tulisan: 'Rumi'|'Jawi', dskp_ids?: string[] }} params
- * @returns {Promise<{ log_id: string|null, tulisan: string, soalan: object }>}
+ * @param {{ nombor: 1|2|3|4|5, dskp_ids?: string[] }} params
+ * @returns {Promise<{ log_id: string|null, soalan: object }>}
  */
 export const janaSpm = (params) => callFunction('/jana-spm', params);

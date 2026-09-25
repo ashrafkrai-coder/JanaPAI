@@ -96,10 +96,9 @@ Alpine.data('app', () => ({
   sp: {
     mod: pref.get('sp.mod', 'jana'),        // 'jana' | 'percubaan'
     nombor: 0,                               // 0 = kertas penuh (5 soalan)
-    tulisan: pref.get('sp.tulisan', 'Rumi'), // kertas SPM sebenar dalam Rumi
     dskp45: [],                              // semua tajuk DSKP T4 & T5
     fokus: [],                               // dskp_id pilihan (maks 3, soalan tunggal sahaja)
-    hasil: [],                               // [{ nombor, status: 'loading'|'ok'|'ralat', soalan, tulisan, ralat }]
+    hasil: [],                               // [{ nombor, status: 'loading'|'ok'|'ralat', soalan, ralat }]
   },
 
   // --- Soalan Percubaan (semua dimuat sekali, ditapis di pelayar) -------------
@@ -324,7 +323,7 @@ Alpine.data('app', () => ({
     const pilihan = q.pilihan_jawapan
       ? '\n' + ['A', 'B', 'C', 'D'].map((k) => `${k}. ${q.pilihan_jawapan[k]}`).join('\n')
       : '';
-    const teks = `${q.soalan}${pilihan}\n\nسکيما:\n${q.skema_jawapan}`;
+    const teks = `${q.soalan}${pilihan}\n\nSkema:\n${q.skema_jawapan}`;
     const ok = await navigator.clipboard?.writeText(teks).then(() => true, () => false);
     this.notify(ok ? 'سوالن دسالين.' : 'تيدق داڤت مڽالين ڤد ڤلاير اين.', ok ? 'ok' : 'ralat');
   },
@@ -368,9 +367,8 @@ Alpine.data('app', () => ({
   async janaKertasSpm() {
     const sp = this.sp;
     if (!this.online) return this.notify('تياد سمبوڠن اينترنيت.', 'ralat');
-    pref.set('sp.tulisan', sp.tulisan);
     const nombor = sp.nombor ? [sp.nombor] : [1, 2, 3, 4, 5];
-    sp.hasil = nombor.map((n) => ({ nombor: n, status: 'loading', soalan: null, tulisan: sp.tulisan, ralat: '' }));
+    sp.hasil = nombor.map((n) => ({ nombor: n, status: 'loading', soalan: null, ralat: '' }));
     // Kertas penuh: 5 panggilan serentak — satu soalan gagal tidak menjejaskan yang lain.
     await Promise.all(sp.hasil.map((_, i) => this.janaSatuSpm(i)));
     const gagal = sp.hasil.filter((h) => h.status === 'ralat').length;
@@ -384,10 +382,9 @@ Alpine.data('app', () => ({
     try {
       const res = await janaSpm({
         nombor: h.nombor,
-        tulisan: h.tulisan,
         dskp_ids: sp.nombor ? sp.fokus : [],
       });
-      Object.assign(h, { status: 'ok', soalan: res.soalan, tulisan: res.tulisan });
+      Object.assign(h, { status: 'ok', soalan: res.soalan });
     } catch (err) {
       Object.assign(h, { status: 'ralat', ralat: err.message });
     }
@@ -403,19 +400,22 @@ Alpine.data('app', () => ({
     return r;
   },
 
-  // Label mengikut tulisan hasil (kertas Rumi atau Jawi).
-  tSpm(tulisan, rumi, jawi) {
-    return tulisan === 'Jawi' ? jawi : rumi;
+  /**
+   * Soalan dan skema kini dalam Rumi; soalan lama dalam bank mungkin Jawi. Huruf khas Jawi
+   * (\u06A4 \u06A0 \u0762 \u0686 \u06BD \u06CF \u06A9) tiada dalam teks Arab al-Quran/hadis, jadi petikan nas tidak mengelirukan.
+   */
+  arahTeks(teks) {
+    return /[\u06A4\u06AD\u0762\u0686\u06BD\u06CF\u06A9]/.test(teks ?? '') ? 'rtl' : 'ltr';
   },
 
   teksSoalanSpm(h, denganSkema) {
-    const m = (n) => this.tSpm(h.tulisan, `[${n} markah]`, `[${n} مارکه]`);
+    const m = (n) => `[${n} markah]`;
     const baris = [`${h.soalan.nombor}.`];
     for (const b of h.soalan.bahagian) {
       baris.push(`(${b.label})${b.rangsangan ? ' ' + b.rangsangan : ''}`);
       for (const it of b.item) {
         baris.push(`  (${it.label}) ${it.soalan} ${m(it.markah)}`);
-        if (denganSkema) baris.push(`      ${this.tSpm(h.tulisan, 'Skema', 'سکيما')}:\n${it.skema.replace(/^/gm, '      ')}`);
+        if (denganSkema) baris.push(`      Skema:\n${it.skema.replace(/^/gm, '      ')}`);
       }
     }
     return baris.join('\n');

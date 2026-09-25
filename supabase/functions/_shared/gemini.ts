@@ -106,7 +106,7 @@ async function generateJson<T>(opts: {
 }
 
 // =============================================================================
-// Tulisan Jawi — semua teks untuk murid/guru dipulangkan dalam Jawi
+// Tulisan — soalan & skema (Jana Soalan, SPM) dalam RUMI; RPT/RPH dalam JAWI
 // =============================================================================
 
 const ARAHAN_JAWI = `
@@ -123,6 +123,15 @@ TULISAN (WAJIB)
 - Nilai medan enum dalam skema JSON (cth aras_kognitif) kekal seperti yang disenaraikan.
 `.trim();
 
+const ARAHAN_RUMI = `
+TULISAN (WAJIB)
+- SEMUA teks (soalan, pilihan jawapan, penjelasan, skema) ditulis dalam Bahasa Melayu tulisan
+  RUMI baku, seperti kertas peperiksaan SPM sebenar. JANGAN gunakan tulisan Jawi.
+- Istilah: Allah SWT, Rasulullah SAW, Nabi Muhammad SAW, r.a., a.s.; nama surah seperti buku teks
+  (cth: Surah al-Baqarah); istilah Arab mengikut ejaan Rumi lazim buku teks (solat, wuduk, akidah).
+- Maklumat DSKP yang diberikan ditulis dalam Jawi — fahami dan tulis semula dalam Rumi.
+`.trim();
+
 // =============================================================================
 // FUNGSI B — Jana Soalan KSSM
 // =============================================================================
@@ -131,14 +140,14 @@ const SYSTEM_SOALAN = `
 Anda ialah Guru Cemerlang Pendidikan Islam dan penggubal item peperiksaan (PT3/SPM) yang
 berpengalaman di bawah Kurikulum Standard Sekolah Menengah (KSSM), Kementerian Pendidikan Malaysia.
 
-${ARAHAN_JAWI}
+${ARAHAN_RUMI}
 
 GAYA BAHASA
 - Bahasa Melayu baku dan formal, sesuai dengan tahap murid Tingkatan yang dinyatakan.
-- Gunakan istilah Pendidikan Islam yang lazim dalam buku teks KSSM (cth: صلاة، وضوء، عقيدة،
-  شريعة، مکلف، سنة مؤکد، رسول الله ﷺ، الله ﷻ، صحابة رضي الله عنهم).
+- Gunakan istilah Pendidikan Islam yang lazim dalam buku teks KSSM (cth: solat, wuduk, akidah,
+  syariat, mukalaf, sunat muakkad, Rasulullah SAW, Allah SWT, sahabat r.a.).
 - Teks Arab (ayat al-Quran/hadis/doa) hanya jika perlu, dengan baris yang lengkap, dan sentiasa
-  disertakan maksudnya dalam Bahasa Melayu tulisan Jawi.
+  disertakan maksudnya dalam Bahasa Melayu.
 
 ARAS KOGNITIF (Taksonomi Bloom semakan)
 - Rendah: mengingat dan memahami (nyatakan, senaraikan, apakah maksud).
@@ -161,9 +170,9 @@ SOALAN OBJEKTIF
 - "penjelasan" menerangkan mengapa jawapan itu betul dan mengapa pengganggu utama salah.
 
 SOALAN SUBJEKTIF
-- Nyatakan markah dalam soalan, cth: "(4 مارکه)".
+- Nyatakan markah dalam soalan, cth: "(4 markah)".
 - "skema_jawapan" disusun dalam bentuk titik, setiap titik dengan markah, cth:
-  "1. ... (1م)\n2. ... (1م)". Sertakan "تريما جواڤن لاءين يڠ منسابه" bagi aras Tinggi/KBAT.
+  "1. ... (1m)\n2. ... (1m)". Sertakan "Terima jawapan lain yang munasabah." bagi aras Tinggi/KBAT.
 
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
 `.trim();
@@ -282,7 +291,7 @@ ${dskp.standard_prestasi ? `Selaraskan setiap soalan dengan Standard Prestasi di
         ...base,
         pilihan_jawapan: { A: p.A.trim(), B: p.B.trim(), C: p.C.trim(), D: p.D.trim() },
         jawapan_betul: betul,
-        skema_jawapan: `جواڤن: ${betul}\n${s.penjelasan?.trim() ?? ''}`.trim(),
+        skema_jawapan: `Jawapan: ${betul}\n${s.penjelasan?.trim() ?? ''}`.trim(),
       });
     } else {
       if (!s.skema_jawapan?.trim()) continue;
@@ -306,8 +315,6 @@ export const BIDANG_SPM: Record<number, readonly string[]> = {
   4: ['Sirah'],
   5: ['Akhlak'],
 };
-export const TULISAN = ['Rumi', 'Jawi'] as const;
-export type Tulisan = (typeof TULISAN)[number];
 const ARAS_SPM = ['R', 'S', 'T'] as const;
 const LABEL_ITEM = ['i', 'ii', 'iii'];
 
@@ -318,20 +325,11 @@ export interface SoalanSpm { nombor: number; bahagian: BahagianSpm[]; jumlah_mar
 /** Contoh item percubaan/SPM lepas daripada jadual soalan_percubaan (untuk gaya sahaja). */
 export interface ContohSpm { bahagian: string; soalan: string; markah: number | null; skema_jawapan: string }
 
-const ARAHAN_RUMI = `
-TULISAN (WAJIB)
-- SEMUA teks ditulis dalam Bahasa Melayu tulisan RUMI baku, seperti kertas SPM sebenar.
-- Istilah: Allah SWT, Rasulullah SAW, Nabi Muhammad SAW, r.a., a.s.; nama surah seperti buku teks
-  (cth: Surah al-Baqarah); istilah Arab mengikut ejaan Rumi lazim buku teks (solat, wuduk, akidah).
-- Maklumat DSKP yang diberikan ditulis dalam Jawi — fahami dan tulis semula dalam Rumi.
-`.trim();
-
-function systemSpm(tulisan: Tulisan): string {
-  return `
+const SYSTEM_SPM = `
 Anda ialah penggubal item berpengalaman bagi peperiksaan SPM Pendidikan Islam (1223), Lembaga
 Peperiksaan, Kementerian Pendidikan Malaysia, mengikut Format Pentaksiran KSSM mulai 2021.
 
-${tulisan === 'Jawi' ? ARAHAN_JAWI : ARAHAN_RUMI}
+${ARAHAN_RUMI}
 
 FORMAT KERTAS 1 (1223/1)
 - 5 soalan, setiap satu 20 markah (jumlah 100), jawab semua. Soalan 1: al-Quran dan Hadis;
@@ -370,7 +368,6 @@ SKEMA PEMARKAHAN (setiap item)
 
 Pulangkan JSON sahaja, mengikut skema yang diberikan.
 `.trim();
-}
 
 const SCHEMA_SPM = {
   type: 'object',
@@ -405,13 +402,12 @@ const SCHEMA_SPM = {
 
 export interface JanaSpmInput {
   nombor: number;
-  tulisan: Tulisan;
   /** Tajuk DSKP T4/T5 yang boleh diuji (sudah ditapis mengikut bidang soalan). */
   tajuk: TajukDskp[];
   contoh: ContohSpm[];
 }
 
-export async function janaSpmAI({ nombor, tulisan, tajuk, contoh }: JanaSpmInput): Promise<SoalanSpm> {
+export async function janaSpmAI({ nombor, tajuk, contoh }: JanaSpmInput): Promise<SoalanSpm> {
   const refKeTajuk = new Map(tajuk.map((t, i) => [`D${i + 1}`, t]));
   const senaraiTajuk = tajuk
     .map((t, i) => `D${i + 1} | Tingkatan ${t.tingkatan} | ${t.bidang} | ${t.tajuk}\n   SK: ${t.standard_kandungan}\n   SP: ${t.standard_pembelajaran.replace(/\n/g, '; ')}`)
@@ -435,7 +431,7 @@ ${senaraiContoh}` : ''}
     const raw = await generateJson<{
       bahagian: { tajuk_ref: string; rangsangan: string; item: { soalan: string; markah: number; aras: string; skema: string }[] }[];
     }>({
-      systemInstruction: systemSpm(tulisan),
+      systemInstruction: SYSTEM_SPM,
       prompt: cubaan === 1 ? prompt : `${prompt}\n\nPERINGATAN: jumlah markah semua item MESTI tepat 20.`,
       schema: SCHEMA_SPM,
     });
