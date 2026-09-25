@@ -1,7 +1,8 @@
 -- Dijana oleh scripts/import-percubaan.mjs pada 2026-09-25 — JANGAN sunting dengan tangan.
--- Sumber: https://docs.google.com/spreadsheets/d/1D_EXLhtFEgcC7gB5xb6p40WZ7-kxOHkRo2aaPN3fBdM (87 soalan)
+-- Sumber: https://docs.google.com/spreadsheets/d/1D_EXLhtFEgcC7gB5xb6p40WZ7-kxOHkRo2aaPN3fBdM (78 soalan)
+--         + supabase/percubaan/*.json (38 soalan; 9 soalan spreadsheet digantikan)
 DELETE FROM public.soalan_percubaan
-WHERE no_asal NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87);
+WHERE no_asal NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 80, 81, 82, 83, 84, 85, 86, 87, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009, 10010, 10011, 10012, 10013, 10014, 10015, 10016, 10017, 10018, 10019, 10020, 10021, 10022, 10023, 10024, 10025, 10026, 10027, 10028, 10029, 10030, 10031, 10032, 10033, 10034, 10035, 10036, 10037, 10038);
 
 INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soalan, markah, skema_jawapan, sumber, tag) VALUES
 (1, 'Akidah', 'Soalan 2', 1, 'Nyatakan maksud Akidah Ahli Sunnah Wal Jamaah (ASWJ)', 2, 'Golongan majoriti umat Islam yang berpegang teguh kepada al-Quran dan al-Sunnah mengikut pemahaman Rasulullah SAW, para sahabat, tabi''in dan ulama salaf. (Isi + huraian)', ARRAY['SBP']::text[], 'SPM 2024'),
@@ -23,8 +24,6 @@ INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soala
 (17, 'Fiqah', 'Soalan 3', 6, 'Nyatakan DUA perbezaan ibadat korban dan akikah', 4, '1. Masa: Korban (10-13 Zulhijjah) — Akikah (hari ke-7 selepas kelahiran) / 2. Tujuan: Korban (mendekatkan diri kepada Allah) — Akikah (syukur atas kelahiran anak)', ARRAY['SBP']::text[], 'SPM 2022 & 2023'),
 (18, 'Fiqah', 'Soalan 3', 7, 'Jelaskan DUA sebab tanah pusaka di Malaysia lambat diselesaikan', 4, '1. Waris tidak tahu prosedur tuntutan — harta terbiar lama / 2. Pertelingkahan antara waris — tertangguh di mahkamah', ARRAY['Ramalan']::text[], 'Ramalan 2026'),
 (19, 'Fiqah', 'Soalan 3', 8, 'Siapakah waris yang mendapat 1/4 harta pusaka? Nyatakan syaratnya', 2, 'Suami — apabila isteri meninggalkan anak atau cucu. Tanpa anak: suami dapat 1/2', ARRAY['Ramalan']::text[], 'Ramalan 2026'),
-(20, 'Akhlak', 'Soalan 5 (a)', 1, 'Nyatakan dua adab menyantuni orang sakit dari aspek ibadah', 2, '1. Mendoakan kesihatan mereka / 2. Membantu mereka melakukan ibadah', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
-(21, 'Akhlak', 'Soalan 5 (a)', 2, 'Terangkan hikmah beradab kepada orang sakit', 2, 'Mengeratkan ukhwah sesama anggota masyarakat agar hidup diberkati Allah SWT (isi + huraian)', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (22, 'Akhlak', 'Soalan 5 (a)', 3, 'Nyatakan maksud orang kurang upaya', 2, 'Seseorang yang tidak mempunyai keupayaan untuk melibatkan diri secara efektif dalam masyarakat dari segi fizikal, mental, intelektual atau pacaindera', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (23, 'Akhlak', 'Soalan 5 (a)', 4, 'Jelaskan adab terhadap orang kurang upaya', 2, '1. Memberi bantuan dan tunjuk ajar dalam urusan ibadah / 2. Memberi layanan dengan penuh kasih sayang / 3. Menyediakan kemudahan agar mereka mudah beribadah', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (24, 'Akhlak', 'Soalan 5 (a)', 5, 'Nyatakan dua adab terhadap orang sakit dalam aspek emosi', 2, '1. Memberikan semangat dan motivasi agar sabar dan redha / 2. Tidak mengganggu ketenteraman mereka seperti membuat bising', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
@@ -39,8 +38,6 @@ INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soala
 (33, 'Akhlak', 'Soalan 5 (b)', 2, 'Jelaskan contoh tawaduk yang diamalkan oleh Rasulullah SAW', 2, 'Bersikap lemah lembut dengan kanak-kanak, mendahulukan salam dan membelai rambut mereka', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (34, 'Akhlak', 'Soalan 5 (b)', 3, 'Nyatakan maksud riak', 2, 'Melakukan amalan untuk dilihat dan dipuji oleh orang lain', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (35, 'Akhlak', 'Soalan 5 (b)', 4, 'Jelaskan dua contoh sifat riak', 2, '1. Bersedekah kerana mengharapkan pujian manusia / 2. Melaksanakan solat sunat hanya ketika dihadapan orang', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
-(36, 'Akhlak', 'Soalan 5 (b)', 5, 'Apakah maksud ujub?', 2, 'Berasa bangga dengan amalan dan kelebihan yang ada pada diri sendiri', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
-(37, 'Akhlak', 'Soalan 5 (b)', 6, 'Jelaskan contoh ujub', 2, '1. Berasa bangga dengan kehebatan ilmu yang dimiliki / 2. Merasakan diri lebih soleh berbanding orang lain', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (38, 'Akhlak', 'Soalan 5 (b)', 7, 'Jelaskan dua cara meninggalkan sifat mazmumah', 2, '1. Sentiasa bermuhasabah diri agar terhindar daripada sifat mazmumah / 2. Mengamalkan sifat mahmudah setiap masa', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (39, 'Akhlak', 'Soalan 5 (b)', 8, 'Jelaskan dua cara meninggalkan sifat ujub', 2, '1. Sentiasa merendah diri / 2. Sentiasa mengingati bahawa segala kelebihan adalah pemberian Allah', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
 (40, 'Akhlak', 'Soalan 5 (b)', 9, 'Apakah maksud istiqamah?', 2, 'Ketaatan yang berterusan dalam melaksanakan suruhan Allah SWT dan menjauhi larangan-Nya', ARRAY['Percubaan Negeri 2026']::text[], 'Percubaan 2026'),
@@ -61,8 +58,6 @@ INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soala
 (55, 'Sirah', 'Soalan 4 (a)', 14, 'Jelaskan pencapaian Abu Bakar al-Siddiq dari aspek agama', 1, 'Mengumpulkan al-Quran dalam satu mushaf rasmi selepas ramai huffaz gugur dalam Perang Yamamah', ARRAY['N9']::text[], 'SPM sebenar (berulang)'),
 (56, 'Sirah', 'Soalan 4 (a)', 15, 'Nyatakan riwayat hidup Imam al-Syafie secara ringkas', 2, 'Nama penuh: Muhammad bin Idris al-Syafie / Lahir 150H (767M) di Gaza / Pengasas Mazhab Syafie / Wafat 820M di Mesir', ARRAY['SWK']::text[], 'Percubaan 2026'),
 (57, 'Sirah', 'Soalan 4 (a)', 16, 'Jelaskan dua sumbangan tokoh dalam tamadun Islam', 2, '1. Menghasilkan Kitab al-Umm dan al-Risalah / 2. Mendidik ramai ulama yang menyebarkan ilmu Islam ke seluruh dunia', ARRAY['SWK']::text[], 'Percubaan 2026'),
-(58, 'Sirah', 'Soalan 4 (a)', 17, 'Nyatakan dua ciri kepimpinan Khalifah Ali bin Abi Talib', 2, '1. Bersifat zuhud dan sederhana — tidak tamak harta dan kuasa / 2. Berani dan tegas menegakkan kebenaran walaupun menghadapi tentangan', ARRAY['SEL', 'SBH', 'MEL']::text[], 'Percubaan 2026'),
-(59, 'Sirah', 'Soalan 4 (a)', 18, 'Jelaskan pencapaian Khalifah Uthman bin Affan dalam bidang ketenteraan', 2, '1. Membina angkatan tentera laut Islam pertama / 2. Menawan Cyprus dan Rhodes', ARRAY['SEL', 'KDH', 'PRK']::text[], 'SPM 2022'),
 (60, 'Sirah', 'Soalan 4 (a)', 19, 'Nyatakan sejarah ringkas Kerajaan Abbasiah', 2, 'Diasaskan Abu al-Abbas al-Saffah 750M / Berpusat di Baghdad / Berakhir 1258M (diserang Mongol) / Zaman kegemilangan ilmu', ARRAY['TER']::text[], 'Percubaan 2026'),
 (61, 'Sirah', 'Soalan 4 (a)', 20, 'Nyatakan dua ciri kepimpinan Saidina Uthman bin Affan', 2, '1. Dermawan dan pemurah — menyumbang untuk keperluan umat Islam / 2. Lembut dan penyayang dalam memimpin', ARRAY['KDH', 'PRK']::text[], 'Percubaan 2026'),
 (62, 'Sirah', 'Soalan 4 (a)', 21, 'Jelaskan dua faktor kemerosotan Kerajaan Umaiyah dari aspek sosial', 2, '1. Diskriminasi terhadap mawali (bukan Arab) — rasa tidak puas hati / 2. Kemewahan melampau pembesar — jurang kaya-miskin melebar', ARRAY['PHG']::text[], 'Percubaan 2026'),
@@ -80,9 +75,6 @@ INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soala
 (74, 'Sirah', 'Soalan 4 (b/c)', 9, 'Jelaskan dua faktor kegemilangan Kerajaan Uthmaniah', 2, '1. Kepimpinan sultan kuat, adil dan bertakwa — kestabilan terjamin / 2. Tentera Janissari terlatih, berdisiplin dan bersemangat jihad', ARRAY['N9']::text[], 'Percubaan 2026'),
 (75, 'Sirah', 'Soalan 4 (b/c)', 10, 'Terangkan iktibar daripada pemerintahan Kerajaan Uthmaniah', 2, '1. Pemimpin adil dan bertakwa membawa kegemilangan / 2. Perpaduan umat Islam menjadi asas kekuatan', ARRAY['N9']::text[], 'Percubaan 2026'),
 (76, 'Sirah', 'Soalan 4 (b/c)', 11, 'Siapakah pengasas Kerajaan Uthmaniah?', 2, 'Uthman bin Ertugrul (Osman I) / Sekitar 1299M di Anatolia', ARRAY['SWK']::text[], 'Percubaan 2026'),
-(77, 'Sirah', 'Soalan 4 (b/c)', 12, 'Nyatakan sejarah ringkas Kerajaan Umaiyah', 2, 'Diasaskan Muawiyah bin Abi Sufyan 661M di Damsyik / Kerajaan Islam pertama sistem beraja turun-temurun / Berakhir 750M', ARRAY['SEL']::text[], 'Percubaan 2026'),
-(78, 'Sirah', 'Soalan 4 (b/c)', 13, 'Jelaskan dua faktor keruntuhan Kerajaan Umaiyah dari aspek akhlak', 2, '1. Pemerintah terlibat maksiat dan kemewahan melampau / 2. Penindasan terhadap rakyat terutama bukan Arab', ARRAY['SEL']::text[], 'Percubaan 2026'),
-(79, 'Sirah', 'Soalan 4 (b/c)', 14, 'Nyatakan riwayat hidup Sultan Muhammad al-Fateh', 2, 'Lahir 1432M / Sultan pada usia 21 tahun (1451M) / Takluki Constantinople 1453M / Gelaran al-Fateh / Wafat 1481M', ARRAY['SEL']::text[], 'Percubaan 2026'),
 (80, 'Sirah', 'Soalan 4 (b/c)', 15, 'Siapakah tokoh yang dipenjarakan kerana mempertahankan akidah?', 1, 'Imam Ahmad bin Hanbal / Dipenjarakan kerana menolak fahaman Muktazilah semasa pemerintahan al-Muktasim', ARRAY['TER']::text[], 'Percubaan 2026'),
 (81, 'Sirah', 'Soalan 4 (b/c)', 16, 'Nyatakan hasil karya Imam Ahmad bin Hanbal dalam tamadun Islam', 1, 'Kitab al-Musnad / Koleksi lebih 40000 hadis', ARRAY['TER']::text[], 'Percubaan 2026'),
 (82, 'Sirah', 'Soalan 4 (b/c)', 17, 'Siapakah tokoh yang mempunyai murid terkenal seperti Yusuf al-Qardawi', 2, 'Hassan al-Banna / Pengasas gerakan Ikhwanul Muslimin di Mesir', ARRAY['PHG']::text[], 'Percubaan 2026'),
@@ -90,7 +82,210 @@ INSERT INTO public.soalan_percubaan (no_asal, bidang, bahagian, no_soalan, soala
 (84, 'Sirah', 'Soalan 4 (b/c)', 19, 'Senaraikan dua hasil karya Hassan al-Banna', 2, '1. Majmuah Rasail Hassan al-Banna / 2. Muzakkirat al-Dakwah wa al-Daiyah', ARRAY['PHG']::text[], 'SPM 2024'),
 (85, 'Sirah', 'Soalan 4 (b/c)', 20, 'Jelaskan dua pencapaian Khulafa al-Rasyidin dalam bidang agama', 2, '1. Penyusunan dan pembukuan al-Quran (Mushaf Uthmaniah) / 2. Penyebaran Islam ke luar Semenanjung Arab — Parsi, Rom, Syria, Mesir', ARRAY['SBH']::text[], 'Percubaan 2026'),
 (86, 'Sirah', 'Soalan 4 (b/c)', 21, 'Jelaskan DUA sumbangan Sultan Muhammad al-Fateh kepada tamadun Islam', 4, '1. Menakluki Constantinople 1453M — pusat Islam gemilang / 2. Membina masjid, madrasah dan perpustakaan di Istanbul', ARRAY['Ramalan']::text[], 'Ramalan 2026'),
-(87, 'Sirah', 'Soalan 4 (b/c)', 22, 'Nyatakan DUA ketinggian akhlak Hassan al-Banna dalam perjuangannya', 4, '1. Sabar dan tabah menghadapi tekanan — teruskan dakwah walaupun diancam / 2. Ikhlas berjuang semata-mata kerana Allah', ARRAY['SBP']::text[], 'SPM 2024')
+(87, 'Sirah', 'Soalan 4 (b/c)', 22, 'Nyatakan DUA ketinggian akhlak Hassan al-Banna dalam perjuangannya', 4, '1. Sabar dan tabah menghadapi tekanan — teruskan dakwah walaupun diancam / 2. Ikhlas berjuang semata-mata kerana Allah', ARRAY['SBP']::text[], 'SPM 2024'),
+(10001, 'Al-Quran', 'Soalan 1 (a)', 1, 'Firman Allah SWT (Surah al-An''am: 70).
+Ayat di atas menjelaskan tentang larangan mempersendakan agama.
+
+Nyatakan dua bentuk perbuatan mempersendakan agama.', 2, 'Mana-mana dua (2 isi × 1m):
+- Merasa bangga mempersendakan nama Allah SWT
+- Mengejek dan menghina sunnah Rasulullah SAW
+- Menghina golongan ulama dan orang soleh
+- Mentafsir al-Quran mengikut hawa nafsu dan logik akal semata-mata
+- Menyanjungi perbuatan maksiat
+- Menghalalkan yang haram dan mengharamkan yang halal', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10002, 'Al-Quran', 'Soalan 1 (a)', 2, 'Jelaskan dua kesan mempersendakan agama.', 2, 'Mana-mana dua (2 isi × 1m):
+- Boleh membatalkan iman
+- Tidak dipandang oleh Allah SWT di akhirat
+- Tidak mendapat kejayaan di dunia dan akhirat', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10003, 'Al-Quran', 'Soalan 1 (a)', 3, 'Seorang pelajar muslim makan secara terbuka di kantin sekolah pada waktu rehat di bulan Ramadan.
+
+Berdasarkan pernyataan di atas, kemukakan implikasi perbuatan tersebut.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Menjatuhkan maruah diri
+- Mendapat pandangan negatif daripada rakan yang bukan beragama Islam
+- Mendorong perbuatan mempersendakan agama', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10004, 'Al-Quran', 'Soalan 1 (a)', 4, 'Bagaimana cara untuk membendung perbuatan ini supaya tidak berleluasa?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Menguatkuasakan disiplin / melapor kepada guru
+- Menasihati pelaku supaya menghormati bulan puasa
+- Menjauhkan diri daripada murid yang makan di khalayak ramai
+- Mengajak mereka supaya mendalami ajaran agama', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10005, 'Hadis', 'Soalan 1 (b)', 1, 'Sabda Rasulullah SAW (Muttafaq ''alaih) tentang tujuh golongan yang mendapat naungan Allah SWT pada hari tiada naungan melainkan naungan-Nya.
+Hadis di atas menerangkan tentang golongan yang mendapat naungan Allah SWT.
+
+Apakah maksud pemuda yang hidupnya taat beribadat kepada Allah SWT?', 2, 'Pemuda yang memenuhi masa dengan melakukan ibadah kepada Allah SWT sama ada ibadah wajib atau sunat. (2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10006, 'Hadis', 'Soalan 1 (b)', 2, 'Jelaskan dua contoh pemuda yang hidupnya taat beribadat kepada Allah SWT.', 2, 'Mana-mana dua (2 isi × 1m):
+- Melaksanakan tuntutan solat lima waktu dan ibadat puasa dengan sempurna
+- Melazimi qiamullail
+- Sentiasa membaca al-Quran
+- Mengalunkan zikir setiap masa', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10007, 'Hadis', 'Soalan 1 (b)', 3, 'Islam menganjurkan agar sedekah dilakukan secara sembunyi.
+
+Bagaimana amalan ini dapat membentuk keperibadian seorang muslim?', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Melahirkan rasa keikhlasan dalam diri
+- Dapat mendekatkan diri kepada Allah SWT
+- Menjauhkan sifat riak / ujub dalam diri', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10008, 'Al-Quran', 'Soalan 1 (c)', 1, 'Nyatakan hukum bagi Mad Lazim di bawah:
+(i) الٓمٓصٓ
+(ii) ٱلضَّآلِّينَ', 2, '(i) Mad Lazim Harfi Mukhaffaf (1m)
+(ii) Mad Lazim Kalimi Musaqqal (1m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10009, 'Akidah', 'Soalan 2 (a)', 1, 'Nyatakan maksud nama Allah SWT al-Muntaqim.', 2, 'Nama Allah yang menunjukkan bahawa Allah SWT Maha Pembalas dengan menimpakan azab terhadap orang yang melampaui batas. (2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10010, 'Akidah', 'Soalan 2 (a)', 2, 'Terangkan kefahaman mengenai nama Allah SWT al-Muntaqim.', 2, 'Mana-mana satu (1 isi × 2m):
+- Allah SWT memberikan pembalasan dengan seksaan neraka terhadap orang yang menolak peringatan al-Quran
+- Allah SWT menimpakan azab dalam peristiwa al-Dukhan: orang Quraisy ditimpa kemarau panjang sehingga debu seperti asap menutupi mereka kerana menolak dakwah Rasulullah SAW
+- Allah SWT memberikan pembalasan terhadap orang yang menentang agama-Nya setelah diutuskan rasul dan diberikan keterangan yang jelas', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10011, 'Akidah', 'Soalan 2 (a)', 3, 'Beriman dengan nama Allah SWT al-Muntaqim membentuk keperibadian mulia.
+
+Kemukakan hujah anda untuk menyokong pernyataan di atas.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Takut melakukan kejahatan kerana bimbang dengan balasan Allah SWT
+- Mendorong untuk melakukan kebaikan dengan menghindari kemungkaran
+- Berakhlak mulia dengan melaksanakan kebaikan', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10012, 'Akidah', 'Soalan 2 (b)', 1, 'Nyatakan dua perkara yang membatalkan iman melalui iktikad selain al-Uluhiyyah.', 2, 'Mana-mana dua (2 isi × 1m):
+- Al-Nubuwwah
+- Al-Ghaibiyyat
+- Al-Syariah', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10013, 'Akidah', 'Soalan 2 (b)', 2, 'Firman Allah SWT yang bermaksud: "Wahai orang yang beriman, bertakwalah kepada Allah dengan sebenar-benar takwa dan janganlah sekali-kali kamu mati melainkan dalam keadaan seorang muslim." (Surah Ali-Imran: 102)
+
+Mengapa peringatan di atas perlu diambil berat?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Mengekalkan keimanan dan ketakwaan berlandaskan akidah yang benar sehingga akhir hayat
+- Dirahmati Allah hingga ke syurga kerana kekal dalam iman dan takwa
+- Mengelakkan diri daripada kekal dalam neraka Allah disebabkan rosak akidah', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10014, 'Akidah', 'Soalan 2 (b)', 3, 'Ramalkan akibat jika perkara tersebut diabaikan. Huraikan hujah anda.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Jiwa tidak tenang kerana berhadapan masalah akidah dan iman
+- Terdorong melakukan keburukan dan maksiat yang berterusan
+- Hidup tidak diberkati Allah SWT kerana rosak akidah', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10015, 'Akidah', 'Soalan 2 (c)', 1, 'Antara aliran yang bertentangan dengan akidah Ahli Sunnah Waljamaah ialah Khawarij dan Muktazilah.
+
+Nyatakan sejarah salah satu daripada aliran tersebut.', 2, 'Mana-mana satu (2m):
+- Khawarij: kumpulan pengikut Saidina Ali bin Abu Talib r.a. yang berpaling tadah kerana tidak berpuas hati dengan keputusan Majlis Tahkim
+- Muktazilah: kumpulan yang diasaskan oleh Wasil bin Ata'' setelah berlaku perbezaan pendapat antara beliau dengan gurunya Hasan al-Basri tentang kedudukan pelaku dosa besar', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10016, 'Akidah', 'Soalan 2 (c)', 2, 'Jelaskan kelebihan berpegang dengan aliran Ahli Sunnah Waljamaah.', 2, 'Mana-mana satu (1 isi × 2m):
+- Mendapat keredaan Allah SWT
+- Menjadi asas penerimaan sesuatu amalan
+- Menjamin keamanan negara
+- Mengelak umat Islam daripada terjebak dengan ajaran sesat
+- Membersihkan akidah daripada sebarang bentuk kekeliruan
+- Menghindarkan umat Islam daripada fahaman yang melampau', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10017, 'Fiqah', 'Soalan 3 (a)', 1, 'Ibadah haji merangkumi rukun dan perkara wajib haji.
+
+Bilakah waktu jemaah haji melaksanakan wukuf?', 2, 'Bermula dari masuk waktu Zohor 9 Zulhijjah hingga sebelum masuk waktu Subuh pada 10 Zulhijjah. (2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10018, 'Fiqah', 'Soalan 3 (a)', 2, 'Terangkan dua hikmah ibadat haji dari aspek ekonomi.', 4, 'Mana-mana dua (2 × [isi 1m + huraian 1m]):
+- Meningkatkan taraf hidup umat Islam dengan menabung dalam Tabung Haji — dana umat Islam meningkat
+- Merancakkan perniagaan dan pelancongan — pertemuan jemaah dari serata dunia membuka peluang perniagaan antarabangsa
+- Pengagihan harta zakat/sedekah — memupuk jiwa pemurah
+- Pergerakan jemaah haji yang ramai — mendorong pembangunan infrastruktur dan pengangkutan yang lebih baik
+- Berlakunya perbincangan ekonomi — membuka ruang usahawan muslim bertukar pandangan perniagaan', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10019, 'Fiqah', 'Soalan 3 (a)', 3, '[Rangsangan: poster "BMI 37.5 Jadi Syarat Wajib Haji 2026" — mulai tahun 2026, bakal jemaah haji dengan BMI melebihi 37.5 akan dikira tidak melepasi saringan kesihatan haji.]
+
+Berdasarkan syarat di atas, bagaimanakah seorang jemaah dapat merealisasikan impiannya untuk menunaikan haji?', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Mengawal pemakanan dengan mengambil nutrisi yang cukup
+- Melakukan aktiviti ringan seperti berjalan kaki
+- Pemantauan kesihatan secara berkala', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10020, 'Fiqah', 'Soalan 3 (b)', 1, '[Rangsangan: poster "Hentikan Keganasan Rumah Tangga".]
+
+Apakah punca berlakunya masalah di atas?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Kegagalan suami menanggung nafkah isteri dan anak
+- Sifat panas baran, mabuk dan pengaruh dadah
+- Masalah mental dan isu poligami
+- Pasangan curang
+- Jahil tentang hukum-hakam dan tanggungjawab', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10021, 'Fiqah', 'Soalan 3 (b)', 2, 'Bagaimanakah seorang isteri dapat menyelamatkan dirinya daripada kemelut ini? Huraikan pendapat anda.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Prosiding jenayah atau tindakan undang-undang
+- Membuat permohonan fasakh atau khuluk', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10022, 'Fiqah', 'Soalan 3 (c)', 1, 'Apakah maksud rujuk?', 2, 'Hak suami untuk menyambung kembali ikatan perkahwinan dengan isteri yang diceraikan dalam tempoh idah. (2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10023, 'Fiqah', 'Soalan 3 (c)', 2, 'Jelaskan dua syarat rujuk.', 2, 'Mana-mana dua (2 isi × 1m):
+- Dengan kerelaan sendiri
+- Bukan perceraian secara fasakh atau khuluk
+- Bukan diceraikan dengan talak tiga
+- Isteri yang diceraikan masih dalam tempoh idah
+- Ada lafaz rujuk', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10024, 'Sirah', 'Soalan 4 (a)', 1, 'Nyatakan dua ciri kepimpinan Khalifah Ali bin Abi Talib.', 2, 'Mana-mana dua (2 isi × 1m):
+- Tegas
+- Berani
+- Berilmu
+- Berpandangan jauh', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10025, 'Sirah', 'Soalan 4 (a)', 2, 'Jelaskan pencapaian Khalifah Uthman bin Affan dalam bidang ketenteraan.', 2, 'Menubuhkan angkatan tentera laut Islam yang pertama bagi tujuan keselamatan dan peluasan kuasa. (1 isi × 2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10026, 'Sirah', 'Soalan 4 (a)', 3, 'Khalifah Uthman bin Affan telah mengambil inisiatif menubuhkan jawatankuasa khas untuk mengumpul dan membukukan al-Quran semasa pemerintahannya.
+
+Bagaimana tindakan tersebut dapat membuktikan beliau seorang pemimpin yang berpandangan jauh? Huraikan.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Menjamin kesucian dan keaslian al-Quran
+- Mengelakkan berlakunya penyelewengan atau perubahan pada masa hadapan
+- Langkah pencegahan awal terhadap kemungkinan hilangnya ayat-ayat al-Quran akibat kematian para huffaz', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10027, 'Sirah', 'Soalan 4 (b)', 1, 'Nyatakan sejarah ringkas kerajaan Umaiyah.', 2, 'Mana-mana dua (2 isi × 1m):
+- Asal penubuhan: sempena nama Umaiyah bin Abdul Syams
+- Pengasas / khalifah pertama: Muawiyah bin Abi Sufian
+- Tempoh memerintah: 41H – 132H
+- Keluasan: meliputi sebahagian besar benua Afrika, Asia dan Eropah
+- Bilangan khalifah: 14 orang
+- Khalifah terkenal: Muawiyah bin Abi Sufian, Abdul Malik bin Marwan, al-Walid bin Abdul Malik, Umar bin Abdul Aziz
+- Khalifah terakhir: Marwan bin Muhammad
+- Pusat pemerintahan: Damsyik, Syria', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10028, 'Sirah', 'Soalan 4 (b)', 2, 'Jelaskan dua faktor kemerosotan kerajaan Umaiyah dari aspek akhlak.', 2, '2 isi × 1m:
+- Khalifah mengamalkan cara hidup mewah dan boros dalam perbelanjaan hingga menimbulkan rasa tidak puas hati rakyat
+- Keruntuhan moral dalam kalangan khalifah kerana cenderung kepada hiburan dan kekejaman', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10029, 'Sirah', 'Soalan 4 (c)', 1, 'Nyatakan riwayat hidup Sultan Muhammad al-Fateh.', 2, 'Mana-mana dua (2 isi × 1m):
+- Nama penuh: Muhammad al-Fateh bin Murad II
+- Tarikh lahir: 833H / 1429M
+- Tarikh mangkat: 886H / 1481M
+- Tempoh pemerintahan: 31 tahun
+- Jawatan: pemerintah ketujuh kerajaan Uthmaniyah
+- Sumbangan (1m sahaja): membuka kota Constantinople 857H/1453M; menyatukan empayar di utara Balkan bagi mengelak serangan Hungary; mewakafkan Hagia Sophia sebagai masjid; membina kompleks al-Fateh', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10030, 'Sirah', 'Soalan 4 (c)', 2, 'Sultan Muhammad al-Fateh telah mengkaji kelemahan yang ada pada kota Constantinople serta sebab kegagalan serangan terdahulu sebelum melakukan serangan. Setelah itu, baginda akan membawa ke meja perbincangan bersama jeneral-jeneral perangnya. (Sumber ubahsuai: www.yadim.com, 4 Ogos 2015)
+
+Mengapakah beliau melakukan tindakan tersebut?', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Merancang strategi yang lebih berkesan dengan mengambil iktibar daripada kegagalan serangan terdahulu
+- Memastikan kejayaan misi penaklukan melalui perbincangan bersama pakar bagi mendapatkan idea dan pandangan terbaik', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10031, 'Sirah', 'Soalan 4 (c)', 3, 'Huraikan bagaimana anda mempraktikkan sikap tersebut untuk berjaya dalam pelajaran.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Mengenal pasti kelemahan diri dalam pelajaran
+- Mengenal pasti topik yang tidak dikuasai supaya dapat diperbaiki
+- Menetapkan jadual dan strategi yang sesuai
+- Berbincang dengan guru dan rakan untuk mendapatkan pandangan
+- Mengambil iktibar daripada kesilapan lalu', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10032, 'Akhlak', 'Soalan 5 (a)', 1, 'Perbuatan menziarahi orang yang sedang sakit merupakan amalan mulia.
+
+Jelaskan dua adab terhadap orang sakit dari aspek ibadah.', 2, '2 isi × 1m:
+- Mendoakan kesihatan mereka
+- Membantu mereka yang ingin melakukan ibadah seperti membantu mengambil wuduk', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10033, 'Akhlak', 'Soalan 5 (a)', 2, 'Terangkan dua hikmah beradab kepada orang sakit.', 4, 'Mana-mana dua (2 × [isi 1m + huraian 1m]):
+- Menggembirakan pesakit — agar hatinya tenang dalam menempuh ujian Allah SWT
+- Mengeratkan ukhuwah sesama anggota masyarakat — agar hidup diberkati Allah SWT
+- Melahirkan keinsafan — kerana diberi nikmat kesihatan setelah melihat penderitaan pesakit', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10034, 'Akhlak', 'Soalan 5 (a)', 3, 'Sabda Rasulullah SAW yang bermaksud: "Apabila kamu menghadiri (menziarahi) orang sakit, maka katakanlah perkara-perkara yang baik." (Riwayat Muslim)
+
+Sokong saranan hadis di atas dan kaitkannya dengan emosi pesakit.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Memberi semangat dan motivasi kepada pesakit
+- Pesakit berasa dihargai / gembira
+- Menanamkan sikap positif kepada pesakit', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10035, 'Akhlak', 'Soalan 5 (b)', 1, '[Rangsangan: kartun — lelaki A merakam swafoto dengan telefon sambil menghulurkan sedekah kepada seorang yang miskin (B) dan berkata, "Mesti aku popular lepas ni."]
+
+Apakah maksud ujub?', 2, 'Berasa bangga dengan amalan dan kelebihan yang ada pada diri sendiri. (2m)', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10036, 'Akhlak', 'Soalan 5 (b)', 2, 'Jelaskan contoh ujub.', 2, 'Mana-mana satu (1 isi × 2m):
+- Berasa bangga dengan kehebatan ilmu yang dimiliki
+- Merasa diri lebih soleh berbanding orang lain
+- Berasa kagum pada diri sendiri kerana mampu berpuasa penuh Ramadan diikuti enam hari puasa sunat Syawal berturut-turut
+- Merasakan isterinya paling cantik kerana berkahwin dengan seorang ratu cantik', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10037, 'Akhlak', 'Soalan 5 (b)', 3, 'Jelaskan mengapa Islam melarang perbuatan lelaki A.', 2, 'Rubrik 2m: 1m isi sahaja; 2m isi + huraian ringkas.
+Cadangan isi:
+- Menjatuhkan maruah diri
+- Boleh merosakkan pahala sedekah
+- Menyebabkan syirik khafi
+- Menjejaskan keikhlasan', ARRAY['SEL']::text[], 'Percubaan 2026'),
+(10038, 'Akhlak', 'Soalan 5 (b)', 4, 'Huraikan kesan sekiranya perbuatan tersebut dinormalisasikan dalam masyarakat.', 4, 'Rubrik 4m: 1m isi sahaja; 2m isi + huraian ringkas; 3m huraian lengkap dengan contoh/sebab/dalil; 4m huraian lengkap dengan olahan tepat, jelas, relevan dan menarik.
+Cadangan isi:
+- Hubungan masyarakat renggang
+- Merosakkan imej penerima sedekah
+- Imej masyarakat Islam dipandang rendah', ARRAY['SEL']::text[], 'Percubaan 2026')
 ON CONFLICT (no_asal) DO UPDATE SET
   bidang = EXCLUDED.bidang, bahagian = EXCLUDED.bahagian, no_soalan = EXCLUDED.no_soalan,
   soalan = EXCLUDED.soalan, markah = EXCLUDED.markah, skema_jawapan = EXCLUDED.skema_jawapan,
